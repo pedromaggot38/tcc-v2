@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  root
+  admin
+  journalist
+}
+
+enum States {
+  AC
+  AL
+  AP
+  AM
+  BA
+  CE
+  DF
+  ES
+  GO
+  MA
+  MT
+  MS
+  MG
+  PA
+  PB
+  PR
+  PE
+  PI
+  RJ
+  RN
+  RS
+  RO
+  RR
+  SC
+  SP
+  SE
+  TO
+}
+
+enum WeekDay {
+  Segunda
+  Terca
+  Quarta
+  Quinta
+  Sexta
+  Sabado
+  Domingo
+}
+
+model User {
+  id        String    @id @default(cuid())
+  username  String    @unique
+  password  String
+  role      UserRole  @default(journalist)
+  isBlocked Boolean   @default(false)
+  name      String?
+  phone     String?   @unique
+  email     String?   @unique
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  articles  Article[] @relation("UserArticles")
+
+  @@index([id, username])
+  @@map("user")
+}
+
+model Article {
+  id               Int      @id @default(autoincrement())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  title            String
+  subtitle         String?
+  content          String?
+  published        Boolean  @default(true)
+  slug             String   @unique
+  author           String
+  imageUrl         String?
+  imageDescription String?
+  user             User     @relation("UserArticles", fields: [userId], references: [id], onDelete: Restrict)
+  userId           String
+
+  @@index([slug, userId, createdAt])
+  @@map("article")
+}
+
+model Token {
+  id       Int    @id @default(autoincrement())
+  username String
+  token    String @unique
+
+  @@unique([username, token])
+  @@map("token")
+}
+
+model Doctor {
+  id         Int        @id @default(autoincrement())
+  name       String
+  specialty  String
+  state      States
+  crm        String     @unique
+  phone      String?    @unique
+  email      String?    @unique
+  visibility Boolean
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  schedules  Schedule[]
+
+  @@index([crm, name])
+  @@map("doctor")
+}
+
+model Schedule {
+  id        Int     @id @default(autoincrement())
+  dayOfWeek WeekDay
+  startTime String // Hora no formato "HH:mm"
+  endTime   String // Hora no formato "HH:mm"
+  doctor    Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctorId  Int
+
+  @@unique([doctorId, dayOfWeek])
+  @@index([doctorId, dayOfWeek])
+  @@map("schedule")
+}
