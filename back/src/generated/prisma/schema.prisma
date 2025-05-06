@@ -55,18 +55,20 @@ enum WeekDay {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  username  String    @unique
-  password  String
-  role      UserRole  @default(journalist)
-  isBlocked Boolean   @default(false)
-  name      String?
-  phone     String?   @unique
-  email     String?   @unique
-  image     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  articles  Article[] @relation("UserArticles")
+  id                   String    @id @default(cuid())
+  username             String    @unique
+  password             String
+  email                String    @unique
+  role                 UserRole  @default(journalist)
+  active               Boolean   @default(true)
+  name                 String?
+  phone                String?   @unique
+  image                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  articles             Article[] @relation("UserArticles")
 
   @@index([id, username])
   @@map("user")
@@ -91,27 +93,18 @@ model Article {
   @@map("article")
 }
 
-model Token {
-  id       Int    @id @default(autoincrement())
-  username String
-  token    String @unique
-
-  @@unique([username, token])
-  @@map("token")
-}
-
 model Doctor {
-  id         Int        @id @default(autoincrement())
-  name       String
-  specialty  String
-  state      States
-  crm        String     @unique
-  phone      String?    @unique
-  email      String?    @unique
-  visibility Boolean
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  schedules  Schedule[]
+  id        Int        @id @default(autoincrement())
+  name      String
+  specialty String
+  state     States
+  crm       String     @unique
+  phone     String?    @unique
+  email     String?    @unique
+  visible   Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  schedules Schedule[]
 
   @@index([crm, name])
   @@map("doctor")

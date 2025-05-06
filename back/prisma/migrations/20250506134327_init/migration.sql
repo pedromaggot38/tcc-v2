@@ -12,14 +12,16 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
     "role" "UserRole" NOT NULL DEFAULT 'journalist',
-    "isBlocked" BOOLEAN NOT NULL DEFAULT false,
+    "active" BOOLEAN NOT NULL DEFAULT true,
     "name" TEXT,
     "phone" TEXT,
-    "email" TEXT,
     "image" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "passwordResetToken" TEXT,
+    "passwordResetExpires" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -43,15 +45,6 @@ CREATE TABLE "article" (
 );
 
 -- CreateTable
-CREATE TABLE "token" (
-    "id" SERIAL NOT NULL,
-    "username" TEXT NOT NULL,
-    "token" TEXT NOT NULL,
-
-    CONSTRAINT "token_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "doctor" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
@@ -60,7 +53,7 @@ CREATE TABLE "doctor" (
     "crm" TEXT NOT NULL,
     "phone" TEXT,
     "email" TEXT,
-    "visibility" BOOLEAN NOT NULL,
+    "visible" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -82,10 +75,10 @@ CREATE TABLE "schedule" (
 CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
 
 -- CreateIndex
 CREATE INDEX "user_id_username_idx" ON "user"("id", "username");
@@ -95,12 +88,6 @@ CREATE UNIQUE INDEX "article_slug_key" ON "article"("slug");
 
 -- CreateIndex
 CREATE INDEX "article_slug_userId_createdAt_idx" ON "article"("slug", "userId", "createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "token_token_key" ON "token"("token");
-
--- CreateIndex
-CREATE UNIQUE INDEX "token_username_token_key" ON "token"("username", "token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "doctor_crm_key" ON "doctor"("crm");

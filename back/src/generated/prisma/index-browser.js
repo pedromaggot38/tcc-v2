@@ -124,14 +124,16 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   password: 'password',
+  email: 'email',
   role: 'role',
-  isBlocked: 'isBlocked',
+  active: 'active',
   name: 'name',
   phone: 'phone',
-  email: 'email',
   image: 'image',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  passwordResetToken: 'passwordResetToken',
+  passwordResetExpires: 'passwordResetExpires'
 };
 
 exports.Prisma.ArticleScalarFieldEnum = {
@@ -149,12 +151,6 @@ exports.Prisma.ArticleScalarFieldEnum = {
   userId: 'userId'
 };
 
-exports.Prisma.TokenScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  token: 'token'
-};
-
 exports.Prisma.DoctorScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -163,7 +159,7 @@ exports.Prisma.DoctorScalarFieldEnum = {
   crm: 'crm',
   phone: 'phone',
   email: 'email',
-  visibility: 'visibility',
+  visible: 'visible',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -239,7 +235,6 @@ exports.WeekDay = exports.$Enums.WeekDay = {
 exports.Prisma.ModelName = {
   User: 'User',
   Article: 'Article',
-  Token: 'Token',
   Doctor: 'Doctor',
   Schedule: 'Schedule'
 };

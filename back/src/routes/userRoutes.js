@@ -1,13 +1,14 @@
 import express from 'express';
 import { getAllUsers } from '../controllers/userController.js';
+import { login, signUp } from '../controllers/authController.js';
 
 const router = express.Router();
 
 router.route('/').get(getAllUsers);
 
+router.post('/signUp', signUp);
+router.post('/login', login);
 /*
-router.post('/signUp', userController.);
-router.post('/login');
 
 router.post('/forgotPassword');
 router.patch('/resetPassword/:token');
