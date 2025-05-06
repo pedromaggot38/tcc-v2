@@ -138,8 +138,6 @@ exports.Prisma.UserScalarFieldEnum = {
 
 exports.Prisma.ArticleScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
   title: 'title',
   subtitle: 'subtitle',
   content: 'content',
@@ -148,7 +146,10 @@ exports.Prisma.ArticleScalarFieldEnum = {
   author: 'author',
   imageUrl: 'imageUrl',
   imageDescription: 'imageDescription',
-  userId: 'userId'
+  userId: 'userId',
+  lastModifiedBy: 'lastModifiedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.DoctorScalarFieldEnum = {

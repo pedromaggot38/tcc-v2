@@ -2471,8 +2471,6 @@ export namespace Prisma {
 
   export type ArticleMinAggregateOutputType = {
     id: number | null
-    createdAt: Date | null
-    updatedAt: Date | null
     title: string | null
     subtitle: string | null
     content: string | null
@@ -2482,12 +2480,13 @@ export namespace Prisma {
     imageUrl: string | null
     imageDescription: string | null
     userId: string | null
+    lastModifiedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type ArticleMaxAggregateOutputType = {
     id: number | null
-    createdAt: Date | null
-    updatedAt: Date | null
     title: string | null
     subtitle: string | null
     content: string | null
@@ -2497,12 +2496,13 @@ export namespace Prisma {
     imageUrl: string | null
     imageDescription: string | null
     userId: string | null
+    lastModifiedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type ArticleCountAggregateOutputType = {
     id: number
-    createdAt: number
-    updatedAt: number
     title: number
     subtitle: number
     content: number
@@ -2512,6 +2512,9 @@ export namespace Prisma {
     imageUrl: number
     imageDescription: number
     userId: number
+    lastModifiedBy: number
+    createdAt: number
+    updatedAt: number
     _all: number
   }
 
@@ -2526,8 +2529,6 @@ export namespace Prisma {
 
   export type ArticleMinAggregateInputType = {
     id?: true
-    createdAt?: true
-    updatedAt?: true
     title?: true
     subtitle?: true
     content?: true
@@ -2537,12 +2538,13 @@ export namespace Prisma {
     imageUrl?: true
     imageDescription?: true
     userId?: true
+    lastModifiedBy?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type ArticleMaxAggregateInputType = {
     id?: true
-    createdAt?: true
-    updatedAt?: true
     title?: true
     subtitle?: true
     content?: true
@@ -2552,12 +2554,13 @@ export namespace Prisma {
     imageUrl?: true
     imageDescription?: true
     userId?: true
+    lastModifiedBy?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type ArticleCountAggregateInputType = {
     id?: true
-    createdAt?: true
-    updatedAt?: true
     title?: true
     subtitle?: true
     content?: true
@@ -2567,6 +2570,9 @@ export namespace Prisma {
     imageUrl?: true
     imageDescription?: true
     userId?: true
+    lastModifiedBy?: true
+    createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -2658,8 +2664,6 @@ export namespace Prisma {
 
   export type ArticleGroupByOutputType = {
     id: number
-    createdAt: Date
-    updatedAt: Date
     title: string
     subtitle: string | null
     content: string | null
@@ -2669,6 +2673,9 @@ export namespace Prisma {
     imageUrl: string | null
     imageDescription: string | null
     userId: string
+    lastModifiedBy: string | null
+    createdAt: Date
+    updatedAt: Date
     _count: ArticleCountAggregateOutputType | null
     _avg: ArticleAvgAggregateOutputType | null
     _sum: ArticleSumAggregateOutputType | null
@@ -2692,8 +2699,6 @@ export namespace Prisma {
 
   export type ArticleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     title?: boolean
     subtitle?: boolean
     content?: boolean
@@ -2703,13 +2708,14 @@ export namespace Prisma {
     imageUrl?: boolean
     imageDescription?: boolean
     userId?: boolean
+    lastModifiedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["article"]>
 
   export type ArticleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     title?: boolean
     subtitle?: boolean
     content?: boolean
@@ -2719,13 +2725,14 @@ export namespace Prisma {
     imageUrl?: boolean
     imageDescription?: boolean
     userId?: boolean
+    lastModifiedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["article"]>
 
   export type ArticleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     title?: boolean
     subtitle?: boolean
     content?: boolean
@@ -2735,13 +2742,14 @@ export namespace Prisma {
     imageUrl?: boolean
     imageDescription?: boolean
     userId?: boolean
+    lastModifiedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["article"]>
 
   export type ArticleSelectScalar = {
     id?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     title?: boolean
     subtitle?: boolean
     content?: boolean
@@ -2751,9 +2759,12 @@ export namespace Prisma {
     imageUrl?: boolean
     imageDescription?: boolean
     userId?: boolean
+    lastModifiedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type ArticleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "title" | "subtitle" | "content" | "published" | "slug" | "author" | "imageUrl" | "imageDescription" | "userId", ExtArgs["result"]["article"]>
+  export type ArticleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "subtitle" | "content" | "published" | "slug" | "author" | "imageUrl" | "imageDescription" | "userId" | "lastModifiedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["article"]>
   export type ArticleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -2771,8 +2782,6 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
-      createdAt: Date
-      updatedAt: Date
       title: string
       subtitle: string | null
       content: string | null
@@ -2782,6 +2791,9 @@ export namespace Prisma {
       imageUrl: string | null
       imageDescription: string | null
       userId: string
+      lastModifiedBy: string | null
+      createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["article"]>
     composites: {}
   }
@@ -3207,8 +3219,6 @@ export namespace Prisma {
    */
   interface ArticleFieldRefs {
     readonly id: FieldRef<"Article", 'Int'>
-    readonly createdAt: FieldRef<"Article", 'DateTime'>
-    readonly updatedAt: FieldRef<"Article", 'DateTime'>
     readonly title: FieldRef<"Article", 'String'>
     readonly subtitle: FieldRef<"Article", 'String'>
     readonly content: FieldRef<"Article", 'String'>
@@ -3218,6 +3228,9 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"Article", 'String'>
     readonly imageDescription: FieldRef<"Article", 'String'>
     readonly userId: FieldRef<"Article", 'String'>
+    readonly lastModifiedBy: FieldRef<"Article", 'String'>
+    readonly createdAt: FieldRef<"Article", 'DateTime'>
+    readonly updatedAt: FieldRef<"Article", 'DateTime'>
   }
     
 
@@ -5932,8 +5945,6 @@ export namespace Prisma {
 
   export const ArticleScalarFieldEnum: {
     id: 'id',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt',
     title: 'title',
     subtitle: 'subtitle',
     content: 'content',
@@ -5942,7 +5953,10 @@ export namespace Prisma {
     author: 'author',
     imageUrl: 'imageUrl',
     imageDescription: 'imageDescription',
-    userId: 'userId'
+    userId: 'userId',
+    lastModifiedBy: 'lastModifiedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type ArticleScalarFieldEnum = (typeof ArticleScalarFieldEnum)[keyof typeof ArticleScalarFieldEnum]
@@ -6212,8 +6226,6 @@ export namespace Prisma {
     OR?: ArticleWhereInput[]
     NOT?: ArticleWhereInput | ArticleWhereInput[]
     id?: IntFilter<"Article"> | number
-    createdAt?: DateTimeFilter<"Article"> | Date | string
-    updatedAt?: DateTimeFilter<"Article"> | Date | string
     title?: StringFilter<"Article"> | string
     subtitle?: StringNullableFilter<"Article"> | string | null
     content?: StringNullableFilter<"Article"> | string | null
@@ -6223,13 +6235,14 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Article"> | string | null
     imageDescription?: StringNullableFilter<"Article"> | string | null
     userId?: StringFilter<"Article"> | string
+    lastModifiedBy?: StringNullableFilter<"Article"> | string | null
+    createdAt?: DateTimeFilter<"Article"> | Date | string
+    updatedAt?: DateTimeFilter<"Article"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type ArticleOrderByWithRelationInput = {
     id?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     title?: SortOrder
     subtitle?: SortOrderInput | SortOrder
     content?: SortOrderInput | SortOrder
@@ -6239,6 +6252,9 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     imageDescription?: SortOrderInput | SortOrder
     userId?: SortOrder
+    lastModifiedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -6248,8 +6264,6 @@ export namespace Prisma {
     AND?: ArticleWhereInput | ArticleWhereInput[]
     OR?: ArticleWhereInput[]
     NOT?: ArticleWhereInput | ArticleWhereInput[]
-    createdAt?: DateTimeFilter<"Article"> | Date | string
-    updatedAt?: DateTimeFilter<"Article"> | Date | string
     title?: StringFilter<"Article"> | string
     subtitle?: StringNullableFilter<"Article"> | string | null
     content?: StringNullableFilter<"Article"> | string | null
@@ -6258,13 +6272,14 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Article"> | string | null
     imageDescription?: StringNullableFilter<"Article"> | string | null
     userId?: StringFilter<"Article"> | string
+    lastModifiedBy?: StringNullableFilter<"Article"> | string | null
+    createdAt?: DateTimeFilter<"Article"> | Date | string
+    updatedAt?: DateTimeFilter<"Article"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "slug">
 
   export type ArticleOrderByWithAggregationInput = {
     id?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     title?: SortOrder
     subtitle?: SortOrderInput | SortOrder
     content?: SortOrderInput | SortOrder
@@ -6274,6 +6289,9 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     imageDescription?: SortOrderInput | SortOrder
     userId?: SortOrder
+    lastModifiedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: ArticleCountOrderByAggregateInput
     _avg?: ArticleAvgOrderByAggregateInput
     _max?: ArticleMaxOrderByAggregateInput
@@ -6286,8 +6304,6 @@ export namespace Prisma {
     OR?: ArticleScalarWhereWithAggregatesInput[]
     NOT?: ArticleScalarWhereWithAggregatesInput | ArticleScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Article"> | number
-    createdAt?: DateTimeWithAggregatesFilter<"Article"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"Article"> | Date | string
     title?: StringWithAggregatesFilter<"Article"> | string
     subtitle?: StringNullableWithAggregatesFilter<"Article"> | string | null
     content?: StringNullableWithAggregatesFilter<"Article"> | string | null
@@ -6297,6 +6313,9 @@ export namespace Prisma {
     imageUrl?: StringNullableWithAggregatesFilter<"Article"> | string | null
     imageDescription?: StringNullableWithAggregatesFilter<"Article"> | string | null
     userId?: StringWithAggregatesFilter<"Article"> | string
+    lastModifiedBy?: StringNullableWithAggregatesFilter<"Article"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Article"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Article"> | Date | string
   }
 
   export type DoctorWhereInput = {
@@ -6556,8 +6575,6 @@ export namespace Prisma {
   }
 
   export type ArticleCreateInput = {
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -6566,13 +6583,14 @@ export namespace Prisma {
     author: string
     imageUrl?: string | null
     imageDescription?: string | null
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutArticlesInput
   }
 
   export type ArticleUncheckedCreateInput = {
     id?: number
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -6582,11 +6600,12 @@ export namespace Prisma {
     imageUrl?: string | null
     imageDescription?: string | null
     userId: string
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ArticleUpdateInput = {
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6595,13 +6614,14 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutArticlesNestedInput
   }
 
   export type ArticleUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6611,12 +6631,13 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ArticleCreateManyInput = {
     id?: number
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -6626,11 +6647,12 @@ export namespace Prisma {
     imageUrl?: string | null
     imageDescription?: string | null
     userId: string
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ArticleUpdateManyMutationInput = {
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6639,12 +6661,13 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ArticleUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -6654,6 +6677,9 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: StringFieldUpdateOperationsInput | string
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DoctorCreateInput = {
@@ -7027,8 +7053,6 @@ export namespace Prisma {
 
   export type ArticleCountOrderByAggregateInput = {
     id?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     title?: SortOrder
     subtitle?: SortOrder
     content?: SortOrder
@@ -7038,6 +7062,9 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageDescription?: SortOrder
     userId?: SortOrder
+    lastModifiedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ArticleAvgOrderByAggregateInput = {
@@ -7046,8 +7073,6 @@ export namespace Prisma {
 
   export type ArticleMaxOrderByAggregateInput = {
     id?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     title?: SortOrder
     subtitle?: SortOrder
     content?: SortOrder
@@ -7057,12 +7082,13 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageDescription?: SortOrder
     userId?: SortOrder
+    lastModifiedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ArticleMinOrderByAggregateInput = {
     id?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     title?: SortOrder
     subtitle?: SortOrder
     content?: SortOrder
@@ -7072,6 +7098,9 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageDescription?: SortOrder
     userId?: SortOrder
+    lastModifiedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ArticleSumOrderByAggregateInput = {
@@ -7607,8 +7636,6 @@ export namespace Prisma {
   }
 
   export type ArticleCreateWithoutUserInput = {
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -7617,12 +7644,13 @@ export namespace Prisma {
     author: string
     imageUrl?: string | null
     imageDescription?: string | null
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ArticleUncheckedCreateWithoutUserInput = {
     id?: number
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -7631,6 +7659,9 @@ export namespace Prisma {
     author: string
     imageUrl?: string | null
     imageDescription?: string | null
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ArticleCreateOrConnectWithoutUserInput = {
@@ -7664,8 +7695,6 @@ export namespace Prisma {
     OR?: ArticleScalarWhereInput[]
     NOT?: ArticleScalarWhereInput | ArticleScalarWhereInput[]
     id?: IntFilter<"Article"> | number
-    createdAt?: DateTimeFilter<"Article"> | Date | string
-    updatedAt?: DateTimeFilter<"Article"> | Date | string
     title?: StringFilter<"Article"> | string
     subtitle?: StringNullableFilter<"Article"> | string | null
     content?: StringNullableFilter<"Article"> | string | null
@@ -7675,6 +7704,9 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Article"> | string | null
     imageDescription?: StringNullableFilter<"Article"> | string | null
     userId?: StringFilter<"Article"> | string
+    lastModifiedBy?: StringNullableFilter<"Article"> | string | null
+    createdAt?: DateTimeFilter<"Article"> | Date | string
+    updatedAt?: DateTimeFilter<"Article"> | Date | string
   }
 
   export type UserCreateWithoutArticlesInput = {
@@ -7875,8 +7907,6 @@ export namespace Prisma {
 
   export type ArticleCreateManyUserInput = {
     id?: number
-    createdAt?: Date | string
-    updatedAt?: Date | string
     title: string
     subtitle?: string | null
     content?: string | null
@@ -7885,11 +7915,12 @@ export namespace Prisma {
     author: string
     imageUrl?: string | null
     imageDescription?: string | null
+    lastModifiedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ArticleUpdateWithoutUserInput = {
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7898,12 +7929,13 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ArticleUncheckedUpdateWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7912,12 +7944,13 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ArticleUncheckedUpdateManyWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     subtitle?: NullableStringFieldUpdateOperationsInput | string | null
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7926,6 +7959,9 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     imageDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    lastModifiedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ScheduleCreateManyDoctorInput = {
