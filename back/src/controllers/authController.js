@@ -9,12 +9,12 @@ import { resfc } from '../utils/response.js';
 export const signUp = catchAsync(async (req, res, next) => {
   const { username, password, email, name, phone, image } = req.body;
 
-  const hashedPassword = await hashPassword(password);
+  // const hashedPassword = await hashPassword(password);
 
   const newUser = await db.user.create({
     data: {
       username,
-      password: hashedPassword,
+      password,
       email,
       name,
       phone,
@@ -65,15 +65,20 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 export const resetPassword = catchAsync(async (req, res, next) => {
-  const hashedToken = crypto
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const receivedHashToken = crypto
     .createHash('sha256')
-    .update(req.params.token)
+    .update(token)
     .digest('hex');
 
   const user = await db.user.findFirst({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: {
-      gt: new Date(),
+    where: {
+      passwordResetToken: receivedHashToken,
+      passwordResetExpires: {
+        gt: new Date(),
+      },
     },
   });
 
@@ -81,11 +86,10 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError('Token is invalid or has expired', 400));
   }
 
-  const hashedPassword = hashPassword(req.body.password);
   const updatedUser = await db.user.update({
     where: { id: user.id },
     data: {
-      password: hashedPassword,
+      password,
       passwordResetToken: null,
       passwordResetExpires: null,
     },
