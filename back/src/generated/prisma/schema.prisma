@@ -15,8 +15,8 @@ enum UserRole {
 }
 
 enum ArticleStatus {
-  draft
   published
+  draft
   archived
 }
 
@@ -67,7 +67,7 @@ model User {
   email                String    @unique
   role                 UserRole  @default(journalist)
   active               Boolean   @default(true)
-  name                 String?
+  name                 String
   phone                String?   @unique
   image                String?
   createdAt            DateTime  @default(now())

@@ -194,8 +194,8 @@ exports.UserRole = exports.$Enums.UserRole = {
 };
 
 exports.ArticleStatus = exports.$Enums.ArticleStatus = {
-  draft: 'draft',
   published: 'published',
+  draft: 'draft',
   archived: 'archived'
 };
 
