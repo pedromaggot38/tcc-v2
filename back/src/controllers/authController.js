@@ -8,9 +8,11 @@ import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import {
   comparePassword,
+  createPasswordResetToken,
   hasPasswordChangedAfter,
 } from '../utils/controllers/userUtils.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
+import sendEmail from '../utils/email.js';
 
 export const signUp = catchAsync(async (req, res, next) => {
   const { username, password, email, name, phone, image } = req.body;
@@ -33,7 +35,9 @@ export const login = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    return next(
+      new AppError('Por favor, informe nome de usuário e senha', 400),
+    );
   }
 
   const user = await db.user.findUnique({
@@ -46,7 +50,7 @@ export const login = catchAsync(async (req, res, next) => {
   });
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return next(new AppError('Incorrect username or password', 404));
+    return next(new AppError('Nome de usuário ou senha incorreta', 404));
   }
 
   createSendToken(user, 200, res);
@@ -115,16 +119,56 @@ export const restrictTo = (...roles) => {
   };
 };
 
-//  FALTANDO FAZER
 export const forgotPassword = catchAsync(async (req, res, next) => {
+  const { username } = req.body;
   const user = await db.user.findUnique({
-    where: { username: req.body.username },
+    where: { username },
   });
-
   if (!user) {
     next(new AppError('Usuário não encontrado', 404));
   }
+
+  const { token, hashedToken, expires } = await createPasswordResetToken(
+    user.id,
+  );
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: expires,
+    },
+  });
+
+  const resetURL = `${req.protocol}://${req.get('host')}/api/v0/auth/resetPassword/${token}`;
+
+  const message = `Esqueceu sua senha? Entre neste link para criar uma nova senha: ${resetURL}`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Seu token de redefinição de senha (válido por 10 min)',
+      message,
+    });
+
+    resfc(res, 200, null, 'Token enviado para o seu email');
+    // eslint-disable-next-line no-unused-vars
+  } catch (err) {
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return next(
+      new AppError('Erro ao enviar email. Tente novamente mais tarde.', 500),
+    );
+  }
 });
+
+//  FALTANDO FAZER
 export const resetPassword = catchAsync(async (req, res, next) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -176,8 +220,6 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
 
   const { currentPassword, password } = req.body;
 
-  console.log(req.body);
-
   const isCorrect = await comparePassword(currentPassword, user.password);
 
   if (!isCorrect) {
@@ -188,6 +230,8 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
     where: { id: userId },
     data: { password },
   });
+
+  resfc(res, 200, null, 'Senha alterada com sucesso');
 });
 
 export const logout = catchAsync(async (req, res, next) => {});

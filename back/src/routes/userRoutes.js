@@ -15,11 +15,17 @@ import {
 } from '../controllers/rootController.js';
 import { getMe, updateMe } from '../controllers/userController.js';
 import validate from '../middlewares/validate.js';
-import { updateMyPasswordZodSchema } from '../models/userZodSchema.js';
+import {
+  updateMyPasswordZodSchema,
+  updateUserZodSchema,
+} from '../models/userZodSchema.js';
 
 const router = express.Router();
 
-router.route('/me').get(protect, getMe).patch(protect, updateMe);
+router
+  .route('/me')
+  .get(protect, getMe)
+  .patch(protect, validate(updateUserZodSchema), updateMe);
 router.patch(
   '/me/password',
   protect,

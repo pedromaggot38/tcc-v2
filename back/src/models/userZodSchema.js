@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const phoneRegex = /^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/;
+const phoneRegex = /^\(?\d{2}\)?[\s-]?(9\d{4})-?(\d{4})$/;
 
 export const userCreateZodSchema = z
   .object({
@@ -18,11 +18,11 @@ export const userCreateZodSchema = z
       }),
     image: z
       .string()
-      .optional()
       .transform((val) => (val === '' ? null : val))
       .refine((val) => val === null || /^https?:\/\/.+\..+/.test(val), {
         message: 'URL da imagem inválida',
-      }),
+      })
+      .optional(),
   })
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'As senhas não são iguais',
@@ -41,11 +41,11 @@ export const updateUserZodSchema = z.object({
     }),
   image: z
     .string()
-    .optional()
     .transform((val) => (val === '' ? null : val))
     .refine((val) => val === null || /^https?:\/\/.+\..+/.test(val), {
       message: 'URL da imagem inválida',
-    }),
+    })
+    .optional(),
 });
 
 export const updateMyPasswordZodSchema = z

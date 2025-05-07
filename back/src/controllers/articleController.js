@@ -18,7 +18,7 @@ export const getArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique(req.params.slug);
 
   if (!article) {
-    return next(new AppError('No article found with that slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
   }
 
   resfc(res, 200, { article });
@@ -80,7 +80,7 @@ export const togglePublishedArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { slug } });
 
   if (!article) {
-    return next(new AppError('No article found with that slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
   }
 
   let newStatus;
@@ -90,7 +90,9 @@ export const togglePublishedArticle = catchAsync(async (req, res, next) => {
   } else if (article.status === 'draft') {
     newStatus = 'published';
   } else {
-    return next(new AppError('Cannot toggle article with current status', 400));
+    return next(
+      new AppError('Não é possível alterar o status atual do artigo', 400),
+    );
   }
 
   const updatedArticle = await db.article.update({
@@ -114,7 +116,7 @@ export const toggleArchivedArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { slug } });
 
   if (!article) {
-    return next(new AppError('No article found with that slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
   }
 
   let newStatus;
@@ -124,7 +126,9 @@ export const toggleArchivedArticle = catchAsync(async (req, res, next) => {
   } else if (article.status === 'archived') {
     newStatus = 'draft';
   } else {
-    return next(new AppError('Cannot toggle article with current status', 400));
+    return next(
+      new AppError('Não é possível alterar o status atual do artigo', 400),
+    );
   }
 
   const updatedArticle = await db.article.update({
@@ -149,7 +153,7 @@ export const deleteArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { slug } });
 
   if (!article) {
-    return next(new AppError('No article found with that slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
   }
 
   await db.article.delete({ where: { slug } });
