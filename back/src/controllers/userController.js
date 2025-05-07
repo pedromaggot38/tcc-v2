@@ -54,5 +54,12 @@ export const deactivateMyAccount = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  resfc(res, 200, { user });
+  await db.user.update({
+    where: { id },
+    data: {
+      active: false,
+    },
+  });
+
+  resfc(res, 200, null, 'Conta desativada com sucesso');
 });

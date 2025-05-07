@@ -44,13 +44,23 @@ export const login = catchAsync(async (req, res, next) => {
     where: { username },
     select: {
       id: true,
+      active: true,
       username: true,
       password: true,
     },
   });
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return next(new AppError('Nome de usuário ou senha incorreta', 404));
+    return next(new AppError('Nome de usuário ou senha incorreta', 403));
+  }
+
+  if (user.active === false) {
+    return next(
+      new AppError(
+        'Conta desativada. Entre em contato com um administrador',
+        404,
+      ),
+    );
   }
 
   createSendToken(user, 200, res);
