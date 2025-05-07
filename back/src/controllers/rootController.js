@@ -5,9 +5,25 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { resfc } from '../utils/response.js';
 
-export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {});
+export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
+  const users = await db.user.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
 
-export const getUserAsRoot = catchAsync(async (req, res, next) => {});
+  resfc(res, 200, { users });
+});
+
+export const getUserAsRoot = catchAsync(async (req, res, next) => {
+  const { username } = req.params;
+
+  const user = await db.user.findUnique({ where: { username } });
+
+  if (!user) {
+    return next(new AppError('Usuário não encontrado', 404));
+  }
+
+  resfc(res, 200, { user });
+});
 
 export const createUserAsRoot = catchAsync(async (req, res, next) => {
   const { username, password, role, name, phone, email, image } = req.body;

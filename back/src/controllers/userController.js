@@ -19,9 +19,11 @@ export const getMe = catchAsync(async (req, res, next) => {
 export const updateMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
   const user = await db.user.findUnique({ where: { id } });
+
   if (!user) {
     return next(new AppError('Usuário não encontrado', 404));
   }
+
   const { name, phone, email, image } = req.body;
 
   if (email && email !== user.email) {
@@ -42,17 +44,6 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 
   resfc(res, 200, { user: updatedUser });
-});
-
-export const updateMyPassword = catchAsync(async (req, res, next) => {
-  const { id } = req.user;
-  const user = await db.user.findUnique({ where: { id } });
-
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
-
-  resfc(res, 200, { user });
 });
 
 export const deleteMe = catchAsync(async (req, res, next) => {

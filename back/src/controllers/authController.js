@@ -6,7 +6,10 @@ import catchAsync from '../utils/catchAsync.js';
 import { resfc } from '../utils/response.js';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
-import { hasPasswordChangedAfter } from '../utils/controllers/userUtils.js';
+import {
+  comparePassword,
+  hasPasswordChangedAfter,
+} from '../utils/controllers/userUtils.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
 
 export const signUp = catchAsync(async (req, res, next) => {
@@ -105,23 +108,23 @@ export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
-        new AppError('You do not have permission to perform this action', 403),
+        new AppError('Você não possui permissão para esta ação', 403),
       );
     }
     next();
   };
 };
 
+//  FALTANDO FAZER
 export const forgotPassword = catchAsync(async (req, res, next) => {
   const user = await db.user.findUnique({
     where: { username: req.body.username },
   });
 
   if (!user) {
-    next(new AppError('No user found', 404));
+    next(new AppError('Usuário não encontrado', 404));
   }
 });
-
 export const resetPassword = catchAsync(async (req, res, next) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -156,6 +159,35 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   resfc(res, 200, { user: updatedUser });
 });
 
-export const updatePassword = catchAsync(async (req, res, next) => {});
+export const updateMyPassword = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      password: true,
+    },
+  });
+  if (!user) {
+    next(new AppError('Usuário não encontrado', 404));
+  }
+
+  const { currentPassword, password } = req.body;
+
+  console.log(req.body);
+
+  const isCorrect = await comparePassword(currentPassword, user.password);
+
+  if (!isCorrect) {
+    return next(new AppError('Senha atual incorreta', 401));
+  }
+
+  await db.user.update({
+    where: { id: userId },
+    data: { password },
+  });
+});
 
 export const logout = catchAsync(async (req, res, next) => {});

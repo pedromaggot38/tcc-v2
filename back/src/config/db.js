@@ -5,42 +5,35 @@ const globalForPrisma = globalThis;
 const db = globalForPrisma.prisma || new PrismaClient();
 
 const removeNullFields = (obj) => {
-  Object.keys(obj).forEach((key) => {
-    const value = obj[key];
-    if (value === null) {
-      delete obj[key];
-    } else if (typeof value === 'object' && !Array.isArray(value)) {
-      removeNullFields(value);
-    }
-  });
-};
-
-db.$use(async (params, next) => {
-  if (params.model === 'User' && ['create', 'update'].includes(params.action)) {
-    if (params.args?.data?.password) {
-      const hashedPassword = await hashPassword(params.args.data.password, 12);
-      params.args.data.password = hashedPassword;
-    }
+  if (obj && typeof obj === 'object') {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value === null || value === undefined) {
+        delete obj[key];
+      } else if (typeof value === 'object') {
+        removeNullFields(value);
+      }
+    });
   }
-
+};
+const hashUserPassword = async (params) => {
+  if (params.args?.data?.password) {
+    const hashedPassword = await hashPassword(params.args.data.password, 12);
+    params.args.data.password = hashedPassword;
+  }
+};
+const removePasswordFromQuery = (params) => {
   if (
     params.model === 'User' &&
     ['findMany', 'findFirst', 'findUnique'].includes(params.action)
   ) {
-    if (params.args?.select?.password) {
-      // deixa passar, não faz nada
-    } else {
-      // remove se por acaso incluído
+    if (!params.args?.select?.password) {
       delete params.args?.select?.password;
       delete params.args?.include?.password;
     }
   }
-
-  const result = await next(params);
-
-  const shouldRemovePassword = !(params.args?.select?.password === true);
-
-  const processResult = (item) => {
+};
+const processResult = (result, shouldRemovePassword) => {
+  const processItem = (item) => {
     if (item && typeof item === 'object') {
       removeNullFields(item);
       if (shouldRemovePassword) {
@@ -50,10 +43,24 @@ db.$use(async (params, next) => {
   };
 
   if (Array.isArray(result)) {
-    result.forEach(processResult);
+    result.forEach(processItem);
   } else {
-    processResult(result);
+    processItem(result);
   }
+};
+
+db.$use(async (params, next) => {
+  if (params.model === 'User' && ['create', 'update'].includes(params.action)) {
+    await hashUserPassword(params);
+  }
+  removePasswordFromQuery(params);
+
+  const result = await next(params);
+
+  // Define se a senha deve ser removida da resposta (dependendo do select)
+  const shouldRemovePassword = !(params.args?.select?.password === true);
+
+  processResult(result, shouldRemovePassword);
 
   return result;
 });

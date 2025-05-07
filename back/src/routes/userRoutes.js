@@ -1,6 +1,10 @@
 import express from 'express';
 
-import { protect, restrictTo } from '../controllers/authController.js';
+import {
+  protect,
+  restrictTo,
+  updateMyPassword,
+} from '../controllers/authController.js';
 import {
   createUserAsRoot,
   deleteUserAsRoot,
@@ -9,11 +13,19 @@ import {
   updateUserAsRoot,
   updateUserPasswordAsRoot,
 } from '../controllers/rootController.js';
-import { getMe } from '../controllers/userController.js';
+import { getMe, updateMe } from '../controllers/userController.js';
+import validate from '../middlewares/validate.js';
+import { updateMyPasswordZodSchema } from '../models/userZodSchema.js';
 
 const router = express.Router();
 
-router.route('/me').get(protect, getMe).patch(protect);
+router.route('/me').get(protect, getMe).patch(protect, updateMe);
+router.patch(
+  '/me/password',
+  protect,
+  validate(updateMyPasswordZodSchema),
+  updateMyPassword,
+);
 
 // --- Root-only functions ---
 router.get('/', protect, restrictTo('admin', 'root'), getAllUsersAsRoot);
