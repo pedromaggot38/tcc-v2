@@ -6,11 +6,11 @@ import {
   resetPassword,
 } from '../controllers/authController.js';
 import validate from '../middlewares/validate.js';
-import { userCreateZodSchema } from '../models/userZodSchema.js';
+import { createUserZodSchema } from '../models/userZodSchema.js';
 
 const router = express.Router();
 
-router.post('/signup', validate(userCreateZodSchema), signUp);
+router.post('/signup', validate(createUserZodSchema), signUp);
 router.post('/login', login);
 
 router.post('/forgotPassword', forgotPassword);

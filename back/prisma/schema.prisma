@@ -64,12 +64,12 @@ model User {
   id                   String    @id @default(cuid())
   username             String    @unique
   password             String
-  email                String    @unique
-  role                 UserRole  @default(journalist)
-  active               Boolean   @default(true)
   name                 String
+  email                String    @unique
   phone                String?   @unique
   image                String?
+  role                 UserRole  @default(journalist)
+  active               Boolean   @default(true)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   passwordChangedAt    DateTime?

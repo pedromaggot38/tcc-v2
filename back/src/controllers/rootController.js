@@ -27,18 +27,15 @@ export const getUserAsRoot = catchAsync(async (req, res, next) => {
 
 export const createUserAsRoot = catchAsync(async (req, res, next) => {
   const { username, password, role, name, phone, email, image } = req.body;
+  const currentUser = req.user;
 
-  const newUser = await db.user.create({
-    data: {
-      username,
-      password,
-      role,
-      name,
-      phone,
-      email,
-      image,
-    },
-  });
+  const data = { username, password, name, phone, email, image };
+
+  if (currentUser.role === 'root' && role) {
+    data.role = role;
+  }
+
+  const newUser = await db.user.create({ data });
 
   resfc(res, 201, { user: newUser });
 });
@@ -72,20 +69,22 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
     }
   }
 
-  const updatedUser = await db.user.update({
-    where: { username },
-    data: {
-      name,
-      phone,
-      email,
-      image,
-      active,
-    },
-  });
+  const data = {
+    name,
+    phone,
+    email,
+    image,
+    active,
+  };
 
   if (currentUser.role === 'root' && role) {
-    updatedUser.role = role;
+    data.role = role;
   }
+
+  const updatedUser = await db.user.update({
+    where: { username },
+    data,
+  });
 
   resfc(res, 200, { user: updatedUser });
 });

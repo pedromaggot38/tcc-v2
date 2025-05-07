@@ -20,9 +20,15 @@ import {
 } from '../controllers/userController.js';
 import validate from '../middlewares/validate.js';
 import {
+  createUserAsRootZodSchema,
   updateMyPasswordZodSchema,
+  updateUserAsRootZodSchema,
+  updateUserPasswordAsRootZodSchema,
   updateUserZodSchema,
 } from '../models/userZodSchema.js';
+
+const adminOrRoot = [protect, restrictTo('admin', 'root')];
+const rootOnly = [protect, restrictTo('root')];
 
 const router = express.Router();
 
@@ -40,19 +46,24 @@ router.patch(
 );
 
 // Root/admin only
-router.get('/', protect, restrictTo('admin', 'root'), getAllUsersAsRoot);
-router.post('/', protect, restrictTo('admin', 'root'), createUserAsRoot);
+router.get('/', adminOrRoot, getAllUsersAsRoot);
+router.post(
+  '/',
+  adminOrRoot,
+  validate(createUserAsRootZodSchema),
+  createUserAsRoot,
+);
 
 router
   .route('/:username')
-  .get(protect, restrictTo('admin', 'root'), getUserAsRoot)
-  .patch(protect, restrictTo('admin', 'root'), updateUserAsRoot)
-  .delete(protect, restrictTo('root'), deleteUserAsRoot);
+  .get(adminOrRoot, getUserAsRoot)
+  .patch(adminOrRoot, validate(updateUserAsRootZodSchema), updateUserAsRoot)
+  .delete(rootOnly, deleteUserAsRoot);
 
 router.patch(
   '/:username/password',
-  protect,
-  restrictTo('root'),
+  rootOnly,
+  validate(updateUserPasswordAsRootZodSchema),
   updateUserPasswordAsRoot,
 );
 

@@ -1,21 +1,40 @@
 import { z } from 'zod';
 
-const phoneRegex = /^\(?\d{2}\)?[\s-]?(9\d{4})-?(\d{4})$/;
-
-export const userCreateZodSchema = z
+export const createUserZodSchema = z
   .object({
-    username: z.string().min(1, 'Nome de usuário é obrigatório'),
+    username: z.string().min(1, 'Nome de usuário é obrigatório').toLowerCase(),
     password: z.string().min(4, 'Senha é obrigatória'),
     passwordConfirm: z.string().min(4, 'Senha de confirmação é obrigatória'),
-    email: z.string().email('Email inválido'),
     name: z.string().min(1, 'Nome é obrigatório'),
+    email: z.string().email('Email inválido').toLowerCase(),
     phone: z
       .string()
       .optional()
+      .transform((val) => (val === '' ? null : val)),
+    image: z
+      .string()
       .transform((val) => (val === '' ? null : val))
-      .refine((val) => val === null || phoneRegex.test(val), {
-        message: 'Telefone inválido',
-      }),
+      .refine((val) => val === null || /^https?:\/\/.+\..+/.test(val), {
+        message: 'URL da imagem inválida',
+      })
+      .optional(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'As senhas não coincidem',
+    path: ['passwordConfirm'],
+  });
+
+export const createUserAsRootZodSchema = z
+  .object({
+    username: z.string().min(1, 'Nome de usuário é obrigatório').toLowerCase(),
+    password: z.string().min(4, 'Senha é obrigatória'),
+    passwordConfirm: z.string().min(4, 'Senha de confirmação é obrigatória'),
+    name: z.string().min(1, 'Nome é obrigatório'),
+    email: z.string().email('Email inválido').toLowerCase(),
+    phone: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? null : val)),
     image: z
       .string()
       .transform((val) => (val === '' ? null : val))
@@ -30,15 +49,12 @@ export const userCreateZodSchema = z
   });
 
 export const updateUserZodSchema = z.object({
-  email: z.string().email('Email inválido').optional(),
   name: z.string().min(1, 'Nome é obrigatório').optional(),
+  email: z.string().email('Email inválido').toLowerCase().optional(),
   phone: z
     .string()
     .optional()
-    .transform((val) => (val === '' ? null : val))
-    .refine((val) => val === null || phoneRegex.test(val), {
-      message: 'Telefone inválido',
-    }),
+    .transform((val) => (val === '' ? null : val)),
   image: z
     .string()
     .transform((val) => (val === '' ? null : val))
@@ -46,6 +62,24 @@ export const updateUserZodSchema = z.object({
       message: 'URL da imagem inválida',
     })
     .optional(),
+});
+
+export const updateUserAsRootZodSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório').optional(),
+  email: z.string().email('Email inválido').toLowerCase().optional(),
+  phone: z
+    .string()
+    .optional()
+    .transform((val) => (val === '' ? null : val)),
+  image: z
+    .string()
+    .transform((val) => (val === '' ? null : val))
+    .refine((val) => val === null || /^https?:\/\/.+\..+/.test(val), {
+      message: 'URL da imagem inválida',
+    })
+    .optional(),
+  role: z.enum(['root', 'admin', 'journalist']).optional(),
+  active: z.boolean().optional(),
 });
 
 export const updateMyPasswordZodSchema = z
@@ -59,4 +93,14 @@ export const updateMyPasswordZodSchema = z
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
+  });
+
+export const updateUserPasswordAsRootZodSchema = z
+  .object({
+    password: z.string().min(4, 'Senha é obrigatória'),
+    passwordConfirm: z.string().min(4, 'Senha de confirmação é obrigatória'),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    path: ['passwordConfirm'],
+    message: 'As senhas não coincidem',
   });
