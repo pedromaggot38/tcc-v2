@@ -65,12 +65,6 @@ export const updateArticle = catchAsync(async (req, res, next) => {
       subtitle,
       content,
       author,
-      slug: slugify(title, {
-        lower: true,
-        strict: true,
-        replacement: '-',
-        locale: 'pt',
-      }),
       imageUrl,
       imageDescription,
       lastModifiedBy: userId,

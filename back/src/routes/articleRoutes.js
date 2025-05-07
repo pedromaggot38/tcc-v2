@@ -10,13 +10,14 @@ import {
 } from '../controllers/articleController.js';
 import validate from '../middlewares/validate.js';
 import { articleZodSchema } from '../models/articleZodSchema.js';
+import { protect } from '../controllers/authController.js';
 
 const router = express.Router();
 
 router
   .route('/')
-  .get(getAllArticles)
-  .post(validate(articleZodSchema), createArticle);
+  .get(protect, getAllArticles)
+  .post(protect, validate(articleZodSchema), createArticle);
 
 router
   .route('/:slug')

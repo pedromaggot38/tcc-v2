@@ -23,6 +23,7 @@ CREATE TABLE "user" (
     "image" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "passwordChangedAt" TIMESTAMP(3),
     "passwordResetToken" TEXT,
     "passwordResetExpires" TIMESTAMP(3),
 

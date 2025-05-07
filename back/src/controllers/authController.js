@@ -5,6 +5,8 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { resfc } from '../utils/response.js';
 import jwt from 'jsonwebtoken';
+import { promisify } from 'util';
+import { hasPasswordChangedAfter } from '../utils/controllers/userUtils.js';
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -13,7 +15,7 @@ const signToken = (id) => {
 };
 
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+  const token = signToken(user.id);
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
@@ -65,6 +67,7 @@ export const login = catchAsync(async (req, res, next) => {
   const user = await db.user.findUnique({
     where: { username },
     select: {
+      id: true,
       username: true,
       password: true,
     },
@@ -77,7 +80,57 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-export const protect = catchAsync(async (req, res, next) => {});
+export const protect = catchAsync(async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(
+      new AppError(
+        'Sessão expirada ou não autenticada. Por favor, entre novamente',
+        401,
+      ),
+    );
+  }
+
+  let decoded;
+  try {
+    decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    // eslint-disable-next-line no-unused-vars
+  } catch (err) {
+    return next(
+      new AppError(
+        'Token inválido ou expirado. Por favor, faça login novamente.',
+        401,
+      ),
+    );
+  }
+
+  const currentUser = await db.user.findUnique({ where: { id: decoded.id } });
+  if (!currentUser) {
+    return next(
+      new AppError('O usuário associado a este token não existe mais', 401),
+    );
+  }
+
+  if (hasPasswordChangedAfter(currentUser.passwordChangedAt, decoded.iat)) {
+    return next(
+      new AppError(
+        'Senha foi alterada recentemente. Por favor, faça login novamente.',
+        401,
+      ),
+    );
+  }
+
+  req.user = currentUser;
+
+  next();
+});
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
