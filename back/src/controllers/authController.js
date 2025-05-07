@@ -168,10 +168,19 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-//  FALTANDO FAZER
 export const resetPassword = catchAsync(async (req, res, next) => {
   const { token } = req.params;
-  const { password } = req.body;
+  const { password, passwordConfirm } = req.body;
+
+  if (!password || !passwordConfirm) {
+    return next(
+      new AppError('Por favor, informe a nova senha e a confirmação', 400),
+    );
+  }
+
+  if (password !== passwordConfirm) {
+    return next(new AppError('As senhas não coincidem', 400));
+  }
 
   const receivedHashToken = crypto
     .createHash('sha256')

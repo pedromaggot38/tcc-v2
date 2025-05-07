@@ -46,7 +46,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
   resfc(res, 200, { user: updatedUser });
 });
 
-export const deleteMe = catchAsync(async (req, res, next) => {
+export const deactivateMyAccount = catchAsync(async (req, res, next) => {
   const { id } = req.user;
   const user = await db.user.findUnique({ where: { id } });
 

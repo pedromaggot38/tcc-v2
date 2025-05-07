@@ -25,7 +25,7 @@ export const userCreateZodSchema = z
       .optional(),
   })
   .refine((data) => data.password === data.passwordConfirm, {
-    message: 'As senhas não são iguais',
+    message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
   });
 
@@ -57,6 +57,6 @@ export const updateMyPasswordZodSchema = z
     currentPassword: z.string().min(4, 'A senha atual é obrigatória'),
   })
   .refine((data) => data.password === data.passwordConfirm, {
-    message: 'As senhas não são iguais',
+    message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
   });

@@ -13,7 +13,11 @@ import {
   updateUserAsRoot,
   updateUserPasswordAsRoot,
 } from '../controllers/rootController.js';
-import { getMe, updateMe } from '../controllers/userController.js';
+import {
+  deactivateMyAccount,
+  getMe,
+  updateMe,
+} from '../controllers/userController.js';
 import validate from '../middlewares/validate.js';
 import {
   updateMyPasswordZodSchema,
@@ -25,7 +29,8 @@ const router = express.Router();
 router
   .route('/me')
   .get(protect, getMe)
-  .patch(protect, validate(updateUserZodSchema), updateMe);
+  .patch(protect, validate(updateUserZodSchema), updateMe)
+  .delete(protect, deactivateMyAccount);
 router.patch(
   '/me/password',
   protect,
