@@ -1,13 +1,36 @@
 import express from 'express';
-import { getAllUsers } from '../controllers/userController.js';
-import { login, protect, signUp } from '../controllers/authController.js';
+
+import { protect, restrictTo } from '../controllers/authController.js';
+import {
+  createUserAsRoot,
+  deleteUserAsRoot,
+  getAllUsersAsRoot,
+  getUserAsRoot,
+  updateUserAsRoot,
+  updateUserPasswordAsRoot,
+} from '../controllers/rootController.js';
+import { getMe } from '../controllers/userController.js';
 
 const router = express.Router();
 
-router.route('/').get(protect, getAllUsers);
+router.route('/me').get(protect, getMe).patch(protect);
 
-router.post('/signUp', signUp);
-router.post('/login', login);
+// --- Root-only functions ---
+router.get('/', protect, restrictTo('admin', 'root'), getAllUsersAsRoot);
+
+router
+  .route('/:username')
+  .get(protect, restrictTo('admin', 'root'), getUserAsRoot)
+  .post(protect, restrictTo('admin', 'root'), createUserAsRoot);
+
+router
+  .route('/edit/:username')
+  .patch(protect, restrictTo('admin', 'root'), updateUserAsRoot)
+  .delete(protect, restrictTo('root'), deleteUserAsRoot);
+
+router
+  .route('/edit/:username/password')
+  .patch(protect, restrictTo('root'), updateUserPasswordAsRoot);
 /*
 
 router.post('/forgotPassword');
@@ -20,13 +43,6 @@ router.patch(
 );
 router.patch('/updateMe', authController.protect, userController.updateMe);
 router.delete('/deleteMe', authController.protect, userController.deleteMe);
-
-
-router
-  .route('/:id')
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
 */
 
 export default router;

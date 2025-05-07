@@ -2,6 +2,7 @@ import rateLimit from 'express-rate-limit';
 import express from 'express';
 import helmet from 'helmet';
 
+import authRoutes from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import doctorRouter from './routes/doctorRoutes.js';
 import articleRouter from './routes/articleRoutes.js';
@@ -30,6 +31,7 @@ app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
 
+app.use('/api/v0/auth', authRoutes);
 app.use('/api/v0/users', userRouter);
 app.use('/api/v0/doctors', doctorRouter);
 app.use('/api/v0/articles', articleRouter);
