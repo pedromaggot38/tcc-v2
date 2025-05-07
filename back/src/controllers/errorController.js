@@ -1,9 +1,17 @@
 import AppError from '../utils/appError.js';
 
+const handlePrismaDuplicateFieldError = (err) => {
+  const field = err.meta?.target?.[0] || 'Campo';
+  return new AppError(`${field} já está em uso.`, 400);
+};
+const handlePrismaNotFoundError = (err) => {
+  return new AppError('Registro não encontrado.', 404);
+};
+
 const handleJWTError = () =>
-  new AppError('Invalid token. Please log in again!', 401);
+  new AppError('Token inválido. Tente novamente!', 401);
 const handleJWTExpiredError = () =>
-  new AppError('Expired token. Please log in again!', 401);
+  new AppError('Token expirado. Entre novamente!', 401);
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -41,7 +49,15 @@ export default (err, req, res, next) => {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV == 'production') {
     let error = Object.create(err);
-    if (error.name === 'JsonWebToken') error = handleJWTError();
+
+    if (error.code === 'P2002') {
+      error = handlePrismaDuplicateFieldError(error);
+    }
+    if (error.code === 'P2025') {
+      error = handlePrismaNotFoundError(error);
+    }
+
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
     sendErrorProd(error, res);

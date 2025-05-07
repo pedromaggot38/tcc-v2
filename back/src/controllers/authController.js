@@ -3,13 +3,43 @@ import bcrypt from 'bcryptjs';
 import db from '../config/db.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
-import { hashPassword } from '../utils/controllers/userUtils.js';
 import { resfc } from '../utils/response.js';
+import jwt from 'jsonwebtoken';
+
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove fields from output
+  user.password = undefined;
+  user.active = undefined;
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
 
 export const signUp = catchAsync(async (req, res, next) => {
   const { username, password, email, name, phone, image } = req.body;
-
-  // const hashedPassword = await hashPassword(password);
 
   const newUser = await db.user.create({
     data: {
@@ -22,7 +52,7 @@ export const signUp = catchAsync(async (req, res, next) => {
     },
   });
 
-  resfc(res, 201, { user: newUser });
+  createSendToken(newUser, 201, res);
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -32,13 +62,19 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide email and password!', 400));
   }
 
-  const user = await db.user.findUnique({ where: { username } });
+  const user = await db.user.findUnique({
+    where: { username },
+    select: {
+      username: true,
+      password: true,
+    },
+  });
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return next(new AppError('Incorrect username or password', 404));
   }
 
-  resfc(res, 200, { user });
+  createSendToken(user, 200, res);
 });
 
 export const protect = catchAsync(async (req, res, next) => {});
