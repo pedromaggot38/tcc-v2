@@ -4,45 +4,25 @@ import db from '../config/db.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { hashPassword } from '../utils/controllers/userUtils.js';
-
-const resp = (res, code, user) => {
-  res.status(code).json({
-    status: 'success',
-    data: {
-      user,
-    },
-  });
-};
+import { resfc } from '../utils/response.js';
 
 export const signUp = catchAsync(async (req, res, next) => {
-  const {
-    username,
-    password,
-    role = 'journalist',
-    isBlocked = false,
-    name,
-    phone,
-    email,
-    image,
-  } = req.body;
+  const { username, password, email, name, phone, image } = req.body;
 
   const hashedPassword = await hashPassword(password);
-  console.log(password, hashedPassword);
 
   const newUser = await db.user.create({
     data: {
       username,
       password: hashedPassword,
-      role,
-      isBlocked,
+      email,
       name,
       phone,
-      email,
       image,
     },
   });
 
-  resp(res, 201, newUser);
+  resfc(res, 201, { user: newUser });
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -58,7 +38,7 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect username or password', 404));
   }
 
-  resp(res, 200, user);
+  resfc(res, 200, { user });
 });
 
 export const protect = catchAsync(async (req, res, next) => {});
@@ -111,7 +91,9 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     },
   });
 
-  resp(res, 200, updatedUser);
+  resfc(res, 200, { user: updatedUser });
 });
 
 export const updatePassword = catchAsync(async (req, res, next) => {});
+
+export const logout = catchAsync(async (req, res, next) => {});

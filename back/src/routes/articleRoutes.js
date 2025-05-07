@@ -8,10 +8,15 @@ import {
   togglePublishedArticle,
   updateArticle,
 } from '../controllers/articleController.js';
+import validate from '../middlewares/validate.js';
+import { articleZodSchema } from '../models/articleZodSchema.js';
 
 const router = express.Router();
 
-router.route('/').get(getAllArticles).post(createArticle);
+router
+  .route('/')
+  .get(getAllArticles)
+  .post(validate(articleZodSchema), createArticle);
 
 router
   .route('/:slug')

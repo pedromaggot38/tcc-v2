@@ -2,16 +2,7 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import db from '../config/db.js';
 import slugify from 'slugify';
-
-const response = (res, code, data, message) => {
-  res.status(code).json({
-    status: 'success',
-    ...(message && { message }),
-    data: {
-      data,
-    },
-  });
-};
+import { resfc } from '../utils/response.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
@@ -20,14 +11,9 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
     },
   });
 
-  res.status(200).json({
-    status: 'success',
-    results: articles.length,
-    data: {
-      articles,
-    },
-  });
+  resfc(res, 200, { articles }, null, articles.length);
 });
+
 export const getArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique(req.params.slug);
 
@@ -35,7 +21,7 @@ export const getArticle = catchAsync(async (req, res, next) => {
     return next(new AppError('No article found with that slug', 404));
   }
 
-  response(res, 200, article);
+  resfc(res, 200, { article });
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
@@ -63,7 +49,7 @@ export const createArticle = catchAsync(async (req, res, next) => {
     },
   });
 
-  response(res, 201, newArticle);
+  resfc(res, 201, { article: newArticle });
 });
 
 export const updateArticle = catchAsync(async (req, res, next) => {
@@ -90,7 +76,8 @@ export const updateArticle = catchAsync(async (req, res, next) => {
       lastModifiedBy: userId,
     },
   });
-  response(res, 200, updatedArticle);
+
+  resfc(res, 200, { article: updatedArticle });
 });
 
 export const togglePublishedArticle = catchAsync(async (req, res, next) => {
@@ -117,10 +104,10 @@ export const togglePublishedArticle = catchAsync(async (req, res, next) => {
     data: { status: newStatus },
   });
 
-  response(
+  resfc(
     res,
     200,
-    updatedArticle,
+    { article: updatedArticle },
     newStatus === 'published'
       ? 'Artigo publicado'
       : 'Artigo movido para rascunho',
@@ -151,10 +138,10 @@ export const toggleArchivedArticle = catchAsync(async (req, res, next) => {
     data: { status: newStatus },
   });
 
-  response(
+  resfc(
     res,
     200,
-    updatedArticle,
+    { article: updatedArticle },
     newStatus === 'archived'
       ? 'Artigo arquivado'
       : 'Artigo restaurado para rascunho',
@@ -173,5 +160,5 @@ export const deleteArticle = catchAsync(async (req, res, next) => {
 
   await db.article.delete({ where: { slug } });
 
-  response(res, 204, null);
+  resfc(res, 204, {});
 });

@@ -141,12 +141,12 @@ exports.Prisma.ArticleScalarFieldEnum = {
   title: 'title',
   subtitle: 'subtitle',
   content: 'content',
-  published: 'published',
   slug: 'slug',
   author: 'author',
   imageUrl: 'imageUrl',
   imageDescription: 'imageDescription',
   userId: 'userId',
+  status: 'status',
   lastModifiedBy: 'lastModifiedBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -191,6 +191,12 @@ exports.UserRole = exports.$Enums.UserRole = {
   root: 'root',
   admin: 'admin',
   journalist: 'journalist'
+};
+
+exports.ArticleStatus = exports.$Enums.ArticleStatus = {
+  draft: 'draft',
+  published: 'published',
+  archived: 'archived'
 };
 
 exports.States = exports.$Enums.States = {
