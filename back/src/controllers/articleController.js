@@ -158,5 +158,5 @@ export const deleteArticle = catchAsync(async (req, res, next) => {
 
   await db.article.delete({ where: { slug } });
 
-  resfc(res, 204, {});
+  resfc(res, 204);
 });

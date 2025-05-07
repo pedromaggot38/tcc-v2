@@ -36,7 +36,7 @@ export const login = catchAsync(async (req, res, next) => {
 
   if (!username || !password) {
     return next(
-      new AppError('Por favor, informe nome de usuário e senha', 400),
+      new AppError('Por favor, informe nome de usuário e senha', 401),
     );
   }
 
