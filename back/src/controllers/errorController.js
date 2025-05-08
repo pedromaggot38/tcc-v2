@@ -9,6 +9,10 @@ const handlePrismaNotFoundError = (err) => {
   return new AppError('Registro não encontrado.', 404);
 };
 
+const handleBusinessError = (err) => {
+  return new AppError('Erro de negócio: dados inválidos ou conflito.', 400);
+};
+
 const handleZodError = (err) => {
   const errors = err.errors.map((e) => ({
     field: e.path.join('.'),
@@ -69,6 +73,13 @@ export default (err, req, res, next) => {
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
     if (err instanceof ZodError) error = handleZodError(err);
+
+    if (
+      error instanceof AppError &&
+      error.message.includes('dados inválidos')
+    ) {
+      error = handleBusinessError(error);
+    }
 
     sendErrorProd(error, res);
   }
