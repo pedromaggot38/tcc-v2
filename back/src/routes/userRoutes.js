@@ -10,6 +10,7 @@ import {
   deleteUserAsRoot,
   getAllUsersAsRoot,
   getUserAsRoot,
+  transferRootRole,
   updateUserAsRoot,
   updateUserPasswordAsRoot,
 } from '../controllers/rootController.js';
@@ -66,5 +67,7 @@ router.patch(
   validate(updateUserPasswordAsRootZodSchema),
   updateUserPasswordAsRoot,
 );
+
+router.post('/transfer-root', rootOnly, transferRootRole);
 
 export default router;

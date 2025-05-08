@@ -163,3 +163,52 @@ export const handleRootCreation = catchAsync(async (req, res, next) => {
 
   return createSendToken(newUser, 201, res);
 });
+
+export const transferRootRole = catchAsync(async (req, res, next) => {
+  const currentUserId = req.user.id;
+  const isRoot = req.user.role === 'root';
+  const targetUsername = req.body.username;
+
+  if (!isRoot) {
+    return next(
+      new AppError('Você não é um usuário root para transferir o cargo', 403),
+    );
+  }
+  if (!targetUsername) {
+    return next(new AppError('Nome de usuário do alvo é obrigatório.', 400));
+  }
+
+  const [currentUser, targetUser] = await Promise.all([
+    db.user.findUnique({ where: { id: currentUserId } }),
+    db.user.findUnique({ where: { username: targetUsername } }),
+  ]);
+
+  if (!currentUser) {
+    return next(new AppError('Usuário root atual não encontrado', 404));
+  }
+
+  if (!targetUser || !targetUser.active) {
+    return next(new AppError('Usuário alvo inválido ou inativo', 404));
+  }
+
+  if (targetUser.id === currentUserId) {
+    return next(new AppError('Você já é o root.', 400));
+  }
+
+  if (targetUser.role === 'root') {
+    return next(new AppError('Este usuário já é root', 400));
+  }
+
+  await db.$transaction([
+    db.user.update({
+      where: { id: currentUserId },
+      data: { role: 'admin' },
+    }),
+    db.user.update({
+      where: { id: targetUser.id },
+      data: { role: 'root' },
+    }),
+  ]);
+
+  resfc(res, 200, null, 'Papel de root transferido com sucesso');
+});
