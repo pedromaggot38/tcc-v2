@@ -11,21 +11,24 @@ export const resfc = (
 
   if (message) resBody.message = message;
   if (results !== null) resBody.results = results;
-  if (data && Object.keys(data).length > 0) resBody.data = data;
+
+  if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+    const sanitizedData = JSON.parse(JSON.stringify(data));
+    if ('password' in sanitizedData) {
+      delete sanitizedData.password;
+    }
+    for (const key in sanitizedData) {
+      if (
+        sanitizedData[key] &&
+        typeof sanitizedData[key] === 'object' &&
+        'password' in sanitizedData[key]
+      ) {
+        delete sanitizedData[key].password;
+      }
+    }
+
+    resBody.data = sanitizedData;
+  }
 
   res.status(code).json(resBody);
 };
-
-/* -----  Exemplos  -----------
- resfc(res, 200, { articles }, null, articles.length);
- resfc(res, 200, null, 'Usuário apagado com sucesso');
-
-{
-  "status": "success",
-  "results": 6,
-  "data": {
-      "articles": []
-  }
-  "message": "Usuário apagado com sucesso'"
-}
-  */

@@ -1,16 +1,19 @@
 import express from 'express';
 import {
   login,
-  signUp,
   forgotPassword,
   resetPassword,
 } from '../controllers/authController.js';
-import validate from '../middlewares/validate.js';
-import { createUserZodSchema } from '../models/userZodSchema.js';
+import {
+  checkRootExists,
+  createRootUser,
+} from '../controllers/rootController.js';
 
 const router = express.Router();
 
-router.post('/signup', validate(createUserZodSchema), signUp);
+router.route('/check-root').get(checkRootExists).post(createRootUser);
+
+//router.post('/signup', validate(createRootZodSchema), signUp);
 router.post('/login', login);
 
 router.post('/forgotPassword', forgotPassword);

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createUserZodSchema = z
+export const createRootZodSchema = z
   .object({
     username: z.string().min(1, 'Nome de usuário é obrigatório').toLowerCase(),
     password: z.string().min(4, 'Senha é obrigatória'),

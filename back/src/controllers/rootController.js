@@ -4,6 +4,8 @@ import db from '../config/db.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { resfc } from '../utils/response.js';
+import { createRootZodSchema } from '../models/userZodSchema.js';
+import { createSendToken } from '../utils/controllers/authUtils.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({
@@ -119,4 +121,42 @@ export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
   await db.user.delete({ where: { username } });
 
   resfc(res, 204);
+});
+
+export const checkRootExists = catchAsync(async (req, res, next) => {
+  const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
+
+  if (hasRootUser) {
+    return resfc(res, 200, { exists: true }, 'Usuário root já existe');
+  }
+
+  resfc(res, 204, { exists: false }, 'Usuário root ainda não existe');
+});
+
+export const createRootUser = catchAsync(async (req, res, next) => {
+  const hasRootUser = await db.user.findFirst({
+    where: { role: 'root' },
+  });
+
+  if (hasRootUser) {
+    return resfc(res, 400, null, 'Usuário root já existe');
+  }
+
+  const validatedData = createRootZodSchema.parse(req.body);
+
+  const { username, password, name, email, phone, image } = validatedData;
+
+  const newUser = await db.user.create({
+    data: {
+      username,
+      password,
+      role: 'root',
+      name,
+      email,
+      phone,
+      image,
+    },
+  });
+
+  createSendToken(newUser);
 });

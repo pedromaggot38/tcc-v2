@@ -14,6 +14,7 @@ import {
 import { createSendToken } from '../utils/controllers/authUtils.js';
 import sendEmail from '../utils/email.js';
 
+/*
 export const signUp = catchAsync(async (req, res, next) => {
   const { username, password, email, name, phone, image } = req.body;
 
@@ -30,7 +31,7 @@ export const signUp = catchAsync(async (req, res, next) => {
 
   createSendToken(newUser, 201, res);
 });
-
+*/
 export const login = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
 
