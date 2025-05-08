@@ -21,9 +21,11 @@ export const createSendToken = (user, statusCode, res) => {
 
   res.cookie('jwt', token, cookieOptions);
 
-  // Remove fields from output
-  user.password = undefined;
-  user.active = undefined;
+  const safeUser = {
+    ...user,
+    password: undefined,
+    active: undefined,
+  };
 
-  return resfc(res, statusCode, { user, token });
+  return resfc(res, statusCode, { user: safeUser, token });
 };

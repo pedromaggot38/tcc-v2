@@ -1,3 +1,4 @@
+import { ZodError } from 'zod';
 import AppError from '../utils/appError.js';
 
 const handlePrismaDuplicateFieldError = (err) => {
@@ -6,6 +7,16 @@ const handlePrismaDuplicateFieldError = (err) => {
 };
 const handlePrismaNotFoundError = (err) => {
   return new AppError('Registro não encontrado.', 404);
+};
+
+const handleZodError = (err) => {
+  const errors = err.errors.map((e) => ({
+    field: e.path.join('.'),
+    message: e.message,
+  }));
+
+  const message = 'Erro de validação. Verifique os campos enviados.';
+  return new AppError(message, 400, errors);
 };
 
 const handleJWTError = () =>
@@ -27,6 +38,7 @@ const sendErrorProd = (err, res) => {
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
+      errors: err.errors || [],
     });
   } else {
     console.error('ERROR', err);
@@ -56,6 +68,7 @@ export default (err, req, res, next) => {
 
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+    if (err instanceof ZodError) error = handleZodError(err);
 
     sendErrorProd(error, res);
   }

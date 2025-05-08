@@ -4,14 +4,11 @@ import {
   forgotPassword,
   resetPassword,
 } from '../controllers/authController.js';
-import {
-  checkRootExists,
-  createRootUser,
-} from '../controllers/rootController.js';
+import { checkRootExists } from '../controllers/rootController.js';
 
 const router = express.Router();
 
-router.route('/check-root').get(checkRootExists).post(createRootUser);
+router.route('/check-root-exists').get(checkRootExists);
 
 //router.post('/signup', validate(createRootZodSchema), signUp);
 router.post('/login', login);

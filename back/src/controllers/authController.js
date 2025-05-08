@@ -13,6 +13,7 @@ import {
 } from '../utils/controllers/userUtils.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
 import sendEmail from '../utils/email.js';
+import { handleRootCreation } from './rootController.js';
 
 /*
 export const signUp = catchAsync(async (req, res, next) => {
@@ -33,6 +34,13 @@ export const signUp = catchAsync(async (req, res, next) => {
 });
 */
 export const login = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
+
+  if (!hasRootUser) {
+    return handleRootCreation(req, res, next);
+  }
+
   const { username, password } = req.body;
 
   if (!username || !password) {

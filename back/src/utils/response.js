@@ -30,5 +30,5 @@ export const resfc = (
     resBody.data = sanitizedData;
   }
 
-  res.status(code).json(resBody);
+  return res.status(code).json(resBody);
 };

@@ -127,36 +127,31 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
   const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
 
   if (hasRootUser) {
-    return resfc(res, 200, { exists: true }, 'Usuário root já existe');
+    return resfc(
+      res,
+      200,
+      { exists: true },
+      'Já existe um usuário com a função de root.',
+    );
   }
 
-  resfc(res, 204, { exists: false }, 'Usuário root ainda não existe');
+  resfc(
+    res,
+    200,
+    { exists: false },
+    'Não há usuário com a função de root registrado.',
+  );
 });
 
-export const createRootUser = catchAsync(async (req, res, next) => {
-  const hasRootUser = await db.user.findFirst({
-    where: { role: 'root' },
-  });
-
-  if (hasRootUser) {
-    return resfc(res, 400, null, 'Usuário root já existe');
-  }
-
+export const handleRootCreation = catchAsync(async (req, res, next) => {
   const validatedData = createRootZodSchema.parse(req.body);
 
-  const { username, password, name, email, phone, image } = validatedData;
+  // eslint-disable-next-line no-unused-vars
+  const { passwordConfirm, ...userData } = validatedData;
 
   const newUser = await db.user.create({
-    data: {
-      username,
-      password,
-      role: 'root',
-      name,
-      email,
-      phone,
-      image,
-    },
+    data: { ...userData, role: 'root' },
   });
 
-  createSendToken(newUser);
+  return createSendToken(newUser, 201, res);
 });
