@@ -24,7 +24,7 @@ import {
   updateMyPasswordZodSchema,
   updateUserAsRootZodSchema,
   updateUserPasswordAsRootZodSchema,
-  updateUserZodSchema,
+  updateMeZodSchema,
 } from '../models/userZodSchema.js';
 
 const adminOrRoot = [protect, restrictTo('admin', 'root')];
@@ -35,7 +35,7 @@ const router = express.Router();
 router
   .route('/me')
   .get(protect, getMe)
-  .patch(protect, validate(updateUserZodSchema), updateMe)
+  .patch(protect, validate(updateMeZodSchema), updateMe)
   .delete(protect, deactivateMyAccount);
 
 router.patch(

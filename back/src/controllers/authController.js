@@ -34,7 +34,6 @@ export const signUp = catchAsync(async (req, res, next) => {
 });
 */
 export const login = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
 
   if (!hasRootUser) {

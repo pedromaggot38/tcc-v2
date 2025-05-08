@@ -28,13 +28,17 @@ export const getUserAsRoot = catchAsync(async (req, res, next) => {
 });
 
 export const createUserAsRoot = catchAsync(async (req, res, next) => {
-  const { username, password, role, name, phone, email, image } = req.body;
-  const currentUser = req.user;
-
+  const { username, password, name, phone, email, image } = req.body;
   const data = { username, password, name, phone, email, image };
 
-  if (currentUser.role === 'root' && role) {
-    data.role = role;
+  const isRoot = req.user.role === 'root';
+
+  if (isRoot) {
+    if (req.body.role === 'root') {
+      return next(new AppError('Você já é o usuário root', 400));
+    }
+
+    data.role = req.body.role;
   }
 
   const newUser = await db.user.create({ data });
@@ -116,6 +120,10 @@ export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
 
   if (!user) {
     return next(new AppError('Usuário não encontrado', 404));
+  }
+
+  if (user.role === 'root') {
+    return next(new AppError('Não é possível excluir um usuário root', 400));
   }
 
   await db.user.delete({ where: { username } });

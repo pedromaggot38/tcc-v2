@@ -54,6 +54,14 @@ export const deactivateMyAccount = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
+  if (user.role === 'root') {
+    return next(
+      new AppError(
+        'Não é possível desativar sua conta enquanto você for o único administrador root ativo. Transfira a permissão para outro usuário antes de continuar',
+      ),
+    );
+  }
+
   await db.user.update({
     where: { id },
     data: {

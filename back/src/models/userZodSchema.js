@@ -31,6 +31,7 @@ export const createUserAsRootZodSchema = z
     passwordConfirm: z.string().min(4, 'Senha de confirmação é obrigatória'),
     name: z.string().min(1, 'Nome é obrigatório'),
     email: z.string().email('Email inválido').toLowerCase(),
+    role: z.enum(['root', 'admin', 'journalist']).optional(),
     phone: z
       .string()
       .optional()
@@ -48,7 +49,7 @@ export const createUserAsRootZodSchema = z
     path: ['passwordConfirm'],
   });
 
-export const updateUserZodSchema = z.object({
+export const updateMeZodSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').optional(),
   email: z.string().email('Email inválido').toLowerCase().optional(),
   phone: z
