@@ -6,7 +6,7 @@ export const createRootZodSchema = z
   .object({
     username: z
       .string()
-      .min(1, 'Nome de usuário é obrigatório')
+      .min(4, 'Nome de usuário é obrigatório')
       .regex(
         usernameRegex,
         'O nome de usuário deve conter apenas letras e números',
@@ -18,8 +18,12 @@ export const createRootZodSchema = z
     email: z.string().email('Email inválido').toLowerCase(),
     phone: z
       .string()
+      .max(9, 'O telefone deve conter no máximo 9 dígitos numéricos')
       .optional()
-      .transform((val) => (val === '' ? null : val)),
+      .transform((val) => (val === '' ? null : val))
+      .refine((val) => val === null || /^\d+$/.test(val), {
+        message: 'O telefone deve conter apenas números',
+      }),
     image: z
       .string()
       .transform((val) => (val === '' ? null : val))
@@ -37,7 +41,7 @@ export const createUserAsRootZodSchema = z
   .object({
     username: z
       .string()
-      .min(1, 'Nome de usuário é obrigatório')
+      .min(4, 'Nome de usuário é obrigatório')
       .regex(
         usernameRegex,
         'O nome de usuário deve conter apenas letras e números',
@@ -50,8 +54,12 @@ export const createUserAsRootZodSchema = z
     role: z.enum(['root', 'admin', 'journalist']).optional(),
     phone: z
       .string()
+      .max(9, 'O telefone deve conter no máximo 9 dígitos numéricos')
       .optional()
-      .transform((val) => (val === '' ? null : val)),
+      .transform((val) => (val === '' ? null : val))
+      .refine((val) => val === null || /^\d+$/.test(val), {
+        message: 'O telefone deve conter apenas números',
+      }),
     image: z
       .string()
       .transform((val) => (val === '' ? null : val))
@@ -67,11 +75,26 @@ export const createUserAsRootZodSchema = z
 
 export const updateMeZodSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').optional(),
-  email: z.string().email('Email inválido').toLowerCase().optional(),
-  phone: z
+  email: z
     .string()
     .optional()
-    .transform((val) => (val === '' ? null : val)),
+    .transform((val) => (val === '' ? null : val))
+    .refine(
+      (val) =>
+        val === null ||
+        /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(val),
+      {
+        message: 'Email inválido',
+      },
+    ),
+  phone: z
+    .string()
+    .max(9, 'O telefone deve conter no máximo 9 dígitos numéricos')
+    .optional()
+    .transform((val) => (val === '' ? null : val))
+    .refine((val) => val === null || /^\d+$/.test(val), {
+      message: 'O telefone deve conter apenas números',
+    }),
   image: z
     .string()
     .transform((val) => (val === '' ? null : val))
@@ -95,11 +118,14 @@ export const updateUserAsRootZodSchema = z.object({
         message: 'Email inválido',
       },
     ),
-
   phone: z
     .string()
+    .max(9, 'O telefone deve conter no máximo 9 dígitos numéricos')
     .optional()
-    .transform((val) => (val === '' ? null : val)),
+    .transform((val) => (val === '' ? null : val))
+    .refine((val) => val === null || /^\d+$/.test(val), {
+      message: 'O telefone deve conter apenas números',
+    }),
   image: z
     .string()
     .transform((val) => (val === '' ? null : val))

@@ -8,6 +8,7 @@ import {
 } from '../models/userZodSchema.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
 import { comparePassword } from '../utils/controllers/userUtils.js';
+import { filterValidFields } from '../utils/filterValidFields.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({
@@ -61,7 +62,7 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
 
   if (
     currentUser.role === 'admin' &&
-    (targetUser.role === 'admin' || targetUser.role === 'root')
+    ['admin', 'root'].includes(targetUser.role)
   ) {
     return next(
       new AppError('Você não tem permissão para editar este usuário', 403),
@@ -77,13 +78,7 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
     }
   }
 
-  const data = {
-    name,
-    phone,
-    email,
-    image,
-    active,
-  };
+  const data = filterValidFields({ name, phone, email, image, active });
 
   if (currentUser.role === 'root' && role) {
     data.role = role;
@@ -93,6 +88,8 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
     where: { username },
     data,
   });
+
+  console.log(data);
 
   resfc(res, 200, { user: updatedUser });
 });
