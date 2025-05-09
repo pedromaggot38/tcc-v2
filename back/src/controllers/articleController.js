@@ -6,7 +6,14 @@ import { resfc } from '../utils/response.js';
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          role: true,
+        },
+      },
     },
   });
 

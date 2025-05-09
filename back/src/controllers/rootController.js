@@ -13,6 +13,19 @@ import { filterValidFields } from '../utils/filterValidFields.js';
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({
     orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      phone: true,
+      email: true,
+      image: true,
+      role: true,
+      active: true,
+      createdAt: true,
+      updatedAt: true,
+      password: false,
+    },
   });
 
   resfc(res, 200, { users });
@@ -90,8 +103,6 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
     where: { username },
     data,
   });
-
-  console.log(data);
 
   resfc(res, 200, { user: updatedUser });
 });
@@ -242,6 +253,13 @@ export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
     where: {
       role: 'admin',
       active: true,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      image: true,
     },
   });
 
