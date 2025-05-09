@@ -1,11 +1,13 @@
-// --- Root-only functions ---
-
 import db from '../config/db.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { resfc } from '../utils/response.js';
-import { createRootZodSchema } from '../models/userZodSchema.js';
+import {
+  createRootZodSchema,
+  updateUserPasswordAsRootZodSchema,
+} from '../models/userZodSchema.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
+import { comparePassword } from '../utils/controllers/userUtils.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({
@@ -104,6 +106,12 @@ export const updateUserPasswordAsRoot = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
+  const result = updateUserPasswordAsRootZodSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return next(new AppError(result.error.errors[0].message, 400));
+  }
+
   const { password } = req.body;
 
   await db.user.update({
@@ -111,19 +119,35 @@ export const updateUserPasswordAsRoot = catchAsync(async (req, res, next) => {
     data: { password },
   });
 
-  resfc(res, 200, null, 'Senha de usuário atualizado');
+  resfc(res, 200, null, 'Senha de usuário atualizada');
 });
 
 export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
   const { username } = req.params;
-  const user = await db.user.findUnique({ where: { username } });
+  const { password } = req.body;
 
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
+  if (!username) {
+    return next(new AppError('É necessário fornecer o nome de usuário', 400));
+  }
+  if (!password) {
+    return next(
+      new AppError('É necessário fornecer a senha de usuário root', 400),
+    );
   }
 
-  if (user.role === 'root') {
+  const targetUser = await db.user.findUnique({ where: { username } });
+  if (!targetUser) {
+    return next(new AppError('Usuário não encontrado', 404));
+  }
+  if (targetUser.role === 'root') {
     return next(new AppError('Não é possível excluir um usuário root', 400));
+  }
+
+  const currentUser = req.user;
+  const isPasswordValid = await comparePassword(password, currentUser.password);
+
+  if (!isPasswordValid) {
+    return next(new AppError('Senha de usuário root inválida', 400));
   }
 
   await db.user.delete({ where: { username } });
@@ -211,4 +235,15 @@ export const transferRootRole = catchAsync(async (req, res, next) => {
   ]);
 
   resfc(res, 200, null, 'Papel de root transferido com sucesso');
+});
+
+export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
+  const elegibleUsers = await db.user.findMany({
+    where: {
+      role: 'admin',
+      active: true,
+    },
+  });
+
+  resfc(res, 200, { users: elegibleUsers });
 });

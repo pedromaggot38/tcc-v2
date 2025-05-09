@@ -8,6 +8,7 @@ import {
 import {
   createUserAsRoot,
   deleteUserAsRoot,
+  eligibleForRootTransfer,
   getAllUsersAsRoot,
   getUserAsRoot,
   transferRootRole,
@@ -33,6 +34,16 @@ const rootOnly = [protect, restrictTo('root')];
 
 const router = express.Router();
 
+router.get('/', adminOrRoot, getAllUsersAsRoot);
+router.post(
+  '/',
+  adminOrRoot,
+  validate(createUserAsRootZodSchema),
+  createUserAsRoot,
+);
+router.get('/eligible-for-root', rootOnly, eligibleForRootTransfer);
+router.post('/transfer-root', rootOnly, transferRootRole);
+
 router
   .route('/me')
   .get(protect, getMe)
@@ -46,20 +57,10 @@ router.patch(
   updateMyPassword,
 );
 
-// Root/admin only
-router.get('/', adminOrRoot, getAllUsersAsRoot);
-router.post(
-  '/',
-  adminOrRoot,
-  validate(createUserAsRootZodSchema),
-  createUserAsRoot,
-);
-
 router
   .route('/:username')
   .get(adminOrRoot, getUserAsRoot)
-  .patch(adminOrRoot, validate(updateUserAsRootZodSchema), updateUserAsRoot)
-  .delete(rootOnly, deleteUserAsRoot);
+  .patch(adminOrRoot, validate(updateUserAsRootZodSchema), updateUserAsRoot);
 
 router.patch(
   '/:username/password',
@@ -68,6 +69,6 @@ router.patch(
   updateUserPasswordAsRoot,
 );
 
-router.post('/transfer-root', rootOnly, transferRootRole);
+router.route('/:username/delete').post(rootOnly, deleteUserAsRoot);
 
 export default router;

@@ -83,7 +83,19 @@ export const updateMeZodSchema = z.object({
 
 export const updateUserAsRootZodSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').optional(),
-  email: z.string().email('Email inválido').toLowerCase().optional(),
+  email: z
+    .string()
+    .optional()
+    .transform((val) => (val === '' ? null : val))
+    .refine(
+      (val) =>
+        val === null ||
+        /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(val),
+      {
+        message: 'Email inválido',
+      },
+    ),
+
   phone: z
     .string()
     .optional()
