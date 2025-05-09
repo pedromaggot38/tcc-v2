@@ -1,7 +1,6 @@
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import db from '../config/db.js';
-import slugify from 'slugify';
 import { resfc } from '../utils/response.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
@@ -25,16 +24,17 @@ export const getArticle = catchAsync(async (req, res, next) => {
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
-  const { title, subtitle, content, author, imageUrl, imageDescription } =
-    req.body;
-  const userId = req.user.id;
+  const {
+    title,
+    subtitle,
+    content,
+    author,
+    imageUrl,
+    imageDescription,
+    status,
+  } = req.body;
 
-  const slug = slugify(title, {
-    lower: true,
-    strict: true,
-    replacement: '-',
-    locale: 'pt',
-  });
+  const userId = req.user.id;
 
   const newArticle = await db.article.create({
     data: {
@@ -42,10 +42,10 @@ export const createArticle = catchAsync(async (req, res, next) => {
       subtitle,
       content,
       author,
-      slug,
       imageUrl,
       imageDescription,
       userId,
+      status,
     },
   });
 

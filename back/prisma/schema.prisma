@@ -85,17 +85,17 @@ model Article {
   id               Int           @id @default(autoincrement())
   title            String
   subtitle         String?
-  content          String?
+  content          String?       @db.Text
   slug             String        @unique
   author           String
   imageUrl         String?
   imageDescription String?
-  user             User          @relation("UserArticles", fields: [userId], references: [id], onDelete: Restrict)
-  userId           String
   status           ArticleStatus @default(draft)
   lastModifiedBy   String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  userId           String
+  user             User          @relation("UserArticles", fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([slug, userId, createdAt])
   @@map("article")

@@ -44,7 +44,9 @@ export const createUserAsRoot = catchAsync(async (req, res, next) => {
     data.role = req.body.role;
   }
 
-  const newUser = await db.user.create({ data });
+  const filteredData = filterValidFields(data);
+
+  const newUser = await db.user.create({ data: filteredData });
 
   resfc(res, 201, { user: newUser });
 });
@@ -177,9 +179,10 @@ export const handleRootCreation = catchAsync(async (req, res, next) => {
 
   // eslint-disable-next-line no-unused-vars
   const { passwordConfirm, ...userData } = validatedData;
+  const filteredData = filterValidFields(userData);
 
   const newUser = await db.user.create({
-    data: { ...userData, role: 'root' },
+    data: { ...filteredData, role: 'root' },
   });
 
   return createSendToken(newUser, 201, res);

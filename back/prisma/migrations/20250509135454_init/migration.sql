@@ -15,12 +15,12 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "role" "UserRole" NOT NULL DEFAULT 'journalist',
-    "active" BOOLEAN NOT NULL DEFAULT true,
     "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
     "phone" TEXT,
     "image" TEXT,
+    "role" "UserRole" NOT NULL DEFAULT 'journalist',
+    "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "passwordChangedAt" TIMESTAMP(3),
@@ -40,11 +40,11 @@ CREATE TABLE "article" (
     "author" TEXT NOT NULL,
     "imageUrl" TEXT,
     "imageDescription" TEXT,
-    "userId" TEXT NOT NULL,
     "status" "ArticleStatus" NOT NULL DEFAULT 'draft',
     "lastModifiedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
 
     CONSTRAINT "article_pkey" PRIMARY KEY ("id")
 );

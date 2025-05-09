@@ -9,7 +9,7 @@ import {
   updateArticle,
 } from '../controllers/articleController.js';
 import validate from '../middlewares/validate.js';
-import { articleZodSchema } from '../models/articleZodSchema.js';
+import { createArticleZodSchema } from '../models/articleZodSchema.js';
 import { protect } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -17,15 +17,15 @@ const router = express.Router();
 router
   .route('/')
   .get(protect, getAllArticles)
-  .post(protect, validate(articleZodSchema), createArticle);
+  .post(protect, validate(createArticleZodSchema), createArticle);
 
 router
   .route('/:slug')
-  .get(getArticle)
-  .patch(updateArticle)
-  .delete(deleteArticle);
+  .get(protect, getArticle)
+  .patch(protect, updateArticle)
+  .delete(protect, deleteArticle);
 
-router.patch('/:slug/publish', togglePublishedArticle);
-router.patch('/:slug/archive', toggleArchivedArticle);
+router.patch('/:slug/publish', protect, togglePublishedArticle);
+router.patch('/:slug/archive', protect, toggleArchivedArticle);
 
 export default router;
