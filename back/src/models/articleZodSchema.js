@@ -9,3 +9,5 @@ export const createArticleZodSchema = z.object({
   imageDescription: z.string().optional(),
   status: z.enum(['published', 'draft']).default('draft'),
 });
+
+export const updateArticleZodSchema = createArticleZodSchema.partial();

@@ -31,8 +31,8 @@ export const signUp = catchAsync(async (req, res, next) => {
   });
 
   createSendToken(newUser, 201, res);
-});
-*/
+});*/
+
 export const login = catchAsync(async (req, res, next) => {
   const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
 

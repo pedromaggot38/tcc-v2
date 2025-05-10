@@ -2,6 +2,7 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import db from '../config/db.js';
 import { resfc } from '../utils/response.js';
+import { filterValidFields } from '../utils/filterValidFields.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
@@ -60,22 +61,26 @@ export const createArticle = catchAsync(async (req, res, next) => {
 });
 
 export const updateArticle = catchAsync(async (req, res, next) => {
-  const { title, subtitle, content, author, imageUrl, imageDescription } =
-    req.body;
-  const slug = req.params.slug;
+  const { slug } = req.params;
+
+  const article = await db.article.findUnique({
+    where: { slug },
+  });
+
+  if (!article) {
+    return next(new AppError('Artigo não encontrado', 404));
+  }
+
   const userId = req.user.id;
+
+  const data = filterValidFields({
+    ...req.body,
+    lastModifiedBy: userId,
+  });
 
   const updatedArticle = await db.article.update({
     where: { slug },
-    data: {
-      title,
-      subtitle,
-      content,
-      author,
-      imageUrl,
-      imageDescription,
-      lastModifiedBy: userId,
-    },
+    data,
   });
 
   resfc(res, 200, { article: updatedArticle });
