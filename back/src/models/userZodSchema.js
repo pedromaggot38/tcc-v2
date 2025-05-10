@@ -20,8 +20,8 @@ export const createRootZodSchema = z
       .string()
       .optional()
       .transform((val) => (val === '' || val === undefined ? null : val))
-      .refine((val) => val === null || /^\d{1,9}$/.test(val), {
-        message: 'O telefone deve conter apenas números e no máximo 9 dígitos',
+      .refine((val) => val === null || /^\d{1,11}$/.test(val), {
+        message: 'O telefone deve conter apenas números e no máximo 10 dígitos',
       }),
     image: z
       .string()
@@ -55,8 +55,8 @@ export const createUserAsRootZodSchema = z
       .string()
       .optional()
       .transform((val) => (val === '' || val === undefined ? null : val))
-      .refine((val) => val === null || /^\d{1,9}$/.test(val), {
-        message: 'O telefone deve conter apenas números e no máximo 9 dígitos',
+      .refine((val) => val === null || /^\d{1,11}$/.test(val), {
+        message: 'O telefone deve conter apenas números e no máximo 10 dígitos',
       }),
     image: z
       .string()
@@ -89,8 +89,8 @@ export const updateMeZodSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val === '' || val === undefined ? null : val))
-    .refine((val) => val === null || /^\d{1,9}$/.test(val), {
-      message: 'O telefone deve conter apenas números e no máximo 9 dígitos',
+    .refine((val) => val === null || /^\d{1,11}$/.test(val), {
+      message: 'O telefone deve conter apenas números e no máximo 10 dígitos',
     }),
 
   image: z
@@ -120,8 +120,8 @@ export const updateUserAsRootZodSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val === '' || val === undefined ? null : val))
-    .refine((val) => val === null || /^\d{1,9}$/.test(val), {
-      message: 'O telefone deve conter apenas números e no máximo 9 dígitos',
+    .refine((val) => val === null || /^\d{1,11}$/.test(val), {
+      message: 'O telefone deve conter apenas números e no máximo 10 dígitos',
     }),
 
   image: z

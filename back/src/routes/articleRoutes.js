@@ -29,6 +29,11 @@ router
   .delete(protect, restrictTo('admin', 'root'), deleteArticle);
 
 router.patch('/:id/publish', protect, togglePublishArticle);
-router.patch('/:id/archive', protect, toggleArchiveArticle);
+router.patch(
+  '/:id/archive',
+  protect,
+  restrictTo('admin', 'root'),
+  toggleArchiveArticle,
+);
 
 export default router;

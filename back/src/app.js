@@ -36,10 +36,10 @@ app.use(express.json({ limit: '10kb' }));
 
 app.use(express.static(`${__dirname}/public`));
 
-app.use('/api/v0/auth', authRoutes);
-app.use('/api/v0/users', userRouter);
-app.use('/api/v0/doctors', doctorRouter);
-app.use('/api/v0/articles', articleRouter);
+app.use('/api/v0/admin/auth', authRoutes);
+app.use('/api/v0/admin/users', userRouter);
+app.use('/api/v0/admin/doctors', doctorRouter);
+app.use('/api/v0/admin/articles', articleRouter);
 
 app.all('*', (req, res, next) => {
   next(

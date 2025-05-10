@@ -51,13 +51,13 @@ enum States {
 }
 
 enum WeekDay {
-  Segunda
-  Terca
-  Quarta
-  Quinta
-  Sexta
-  Sabado
-  Domingo
+  segunda
+  terca
+  quarta
+  quinta
+  sexta
+  sabado
+  domingo
 }
 
 model User {
@@ -75,7 +75,12 @@ model User {
   passwordChangedAt    DateTime?
   passwordResetToken   String?
   passwordResetExpires DateTime?
-  articles             Article[] @relation("UserArticles")
+
+  createdArticles Article[] @relation("CreatedArticles")
+  updatedArticles Article[] @relation("UpdatedArticles")
+
+  createdDoctors Doctor[] @relation("CreatedDoctors")
+  updatedDoctors Doctor[] @relation("UpdatedDoctors")
 
   @@index([id, username])
   @@map("user")
@@ -94,10 +99,14 @@ model Article {
   lastModifiedBy   String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  userId           String
-  user             User          @relation("UserArticles", fields: [userId], references: [id], onDelete: Restrict)
 
-  @@index([slug, userId, createdAt])
+  createdBy String
+  updatedBy String?
+
+  createdByUser User  @relation("CreatedArticles", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User? @relation("UpdatedArticles", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([slug, createdAt])
   @@map("article")
 }
 
@@ -114,6 +123,13 @@ model Doctor {
   updatedAt DateTime   @updatedAt
   schedules Schedule[]
 
+  createdBy String
+  updatedBy String?
+
+  createdByUser User  @relation("CreatedDoctors", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User? @relation("UpdatedDoctors", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@unique([crm, state])
   @@index([crm, name])
   @@map("doctor")
 }

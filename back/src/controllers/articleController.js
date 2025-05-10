@@ -6,16 +6,13 @@ import convertId from '../utils/convertId.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy: { createdAt: 'desc' },
     include: {
-      user: {
+      createdByUser: {
         select: {
           id: true,
           username: true,
           name: true,
-          role: true,
         },
       },
     },
@@ -30,32 +27,27 @@ export const getArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({
     where: { id },
     include: {
-      user: {
+      createdByUser: {
         select: {
           id: true,
           username: true,
           name: true,
-          role: true,
         },
       },
     },
   });
 
   if (!article) {
-    return next(
-      new AppError('Nenhum artigo encontrado com esse id ou id', 404),
-    );
+    return next(new AppError('Notícia não encontrada', 404));
   }
 
   resfc(res, 200, { article });
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
-  const data = { ...req.body, userId: req.user.id };
+  const data = { ...req.body, createdBy: req.user.id };
 
-  const newArticle = await db.article.create({
-    data,
-  });
+  const newArticle = await db.article.create({ data });
 
   resfc(res, 201, { article: newArticle });
 });
@@ -68,10 +60,10 @@ export const updateArticle = catchAsync(async (req, res, next) => {
   });
 
   if (!article) {
-    return next(new AppError('Artigo não encontrado', 404));
+    return next(new AppError('Notícia não encontrada', 404));
   }
 
-  const data = { ...req.body, lastModifiedBy: req.user.id };
+  const data = { ...req.body, updatedBy: req.user.id };
 
   const updatedArticle = await db.article.update({
     where: { id },
@@ -87,7 +79,7 @@ export const togglePublishArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
+    return next(new AppError('Notícia não encontrada', 404));
   }
 
   let newStatus = 'published' | 'draft';
@@ -100,7 +92,7 @@ export const togglePublishArticle = catchAsync(async (req, res, next) => {
       newStatus = 'published';
       break;
     default:
-      return next(new AppError('Status do artigo não permite alteração', 400));
+      return next(new AppError('Status da notícia não permite alteração', 400));
   }
 
   const updatedArticle = await db.article.update({
@@ -113,8 +105,8 @@ export const togglePublishArticle = catchAsync(async (req, res, next) => {
     200,
     { article: updatedArticle },
     newStatus === 'published'
-      ? 'Artigo publicado'
-      : 'Artigo movido para rascunho',
+      ? 'Notícia publicada'
+      : 'Notícia movida para rascunho',
   );
 });
 
@@ -124,7 +116,7 @@ export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
+    return next(new AppError('Notícia não encontrada', 404));
   }
 
   let newStatus = 'draft' | 'archived';
@@ -139,7 +131,7 @@ export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
       break;
     default:
       return next(
-        new AppError('Não é possível alterar o status atual do artigo', 400),
+        new AppError('Não é possível alterar o status atual da notícia', 400),
       );
   }
 
@@ -152,9 +144,7 @@ export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
     res,
     200,
     { article: updatedArticle },
-    newStatus === 'archived'
-      ? 'Artigo arquivado'
-      : 'Artigo restaurado para rascunho',
+    newStatus === 'archived' ? 'Notícia arquivada' : 'Notícia restaurada',
   );
 });
 
@@ -164,7 +154,7 @@ export const deleteArticle = catchAsync(async (req, res, next) => {
   const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
+    return next(new AppError('Notícia não encontrada', 404));
   }
 
   await db.article.delete({ where: { id } });
