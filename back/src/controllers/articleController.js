@@ -22,10 +22,28 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
 });
 
 export const getArticle = catchAsync(async (req, res, next) => {
-  const article = await db.article.findUnique(req.params.slug);
+  const identifier = req.params.slug;
+
+  const article = await db.article.findUnique({
+    where: isNaN(Number(identifier))
+      ? { slug: identifier }
+      : { id: parseInt(identifier, 10) },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          role: true,
+        },
+      },
+    },
+  });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
+    return next(
+      new AppError('Nenhum artigo encontrado com esse slug ou id', 404),
+    );
   }
 
   resfc(res, 200, { article });
