@@ -2,11 +2,13 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import db from '../config/db.js';
 import { resfc } from '../utils/response.js';
-import { filterValidFields } from '../utils/filterValidFields.js';
 import convertId from '../utils/convertId.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
     include: {
       user: {
         select: {
@@ -49,29 +51,10 @@ export const getArticle = catchAsync(async (req, res, next) => {
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
-  const {
-    title,
-    subtitle,
-    content,
-    author,
-    imageUrl,
-    imageDescription,
-    status,
-  } = req.body;
-
-  const userId = req.user.id;
+  const data = { ...req.body, userId: req.user.id };
 
   const newArticle = await db.article.create({
-    data: {
-      title,
-      subtitle,
-      content,
-      author,
-      imageUrl,
-      imageDescription,
-      userId,
-      status,
-    },
+    data,
   });
 
   resfc(res, 201, { article: newArticle });
@@ -88,12 +71,7 @@ export const updateArticle = catchAsync(async (req, res, next) => {
     return next(new AppError('Artigo não encontrado', 404));
   }
 
-  const userId = req.user.id;
-
-  const data = filterValidFields({
-    ...req.body,
-    lastModifiedBy: userId,
-  });
+  const data = { ...req.body, lastModifiedBy: req.user.id };
 
   const updatedArticle = await db.article.update({
     where: { id },

@@ -2,9 +2,6 @@ import catchAsync from '../utils/catchAsync.js';
 import db from '../config/db.js';
 import { resfc } from '../utils/response.js';
 import AppError from '../utils/appError.js';
-import { filterValidFields } from '../utils/filterValidFields.js';
-
-// --- Authenticated user functions ---
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
@@ -25,16 +22,15 @@ export const updateMe = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const { name, phone, email, image } = req.body;
+  const { email, ...data } = req.body;
 
   if (email && email !== user.email) {
-    const exstingEmail = await db.user.findUnique({ where: { email } });
-    if (exstingEmail) {
+    const existingEmail = await db.user.findUnique({ where: { email } });
+    if (existingEmail) {
       return next(new AppError('E-mail já está em uso', 400));
     }
+    data.email = email;
   }
-
-  const data = filterValidFields({ name, phone, email, image });
 
   const updatedUser = await db.user.update({
     where: { id },

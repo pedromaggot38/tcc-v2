@@ -8,7 +8,6 @@ import {
 } from '../models/userZodSchema.js';
 import { createSendToken } from '../utils/controllers/authUtils.js';
 import { comparePassword } from '../utils/controllers/userUtils.js';
-import { filterValidFields } from '../utils/filterValidFields.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({
@@ -57,9 +56,7 @@ export const createUserAsRoot = catchAsync(async (req, res, next) => {
     data.role = req.body.role;
   }
 
-  const filteredData = filterValidFields(data);
-
-  const newUser = await db.user.create({ data: filteredData });
+  const newUser = await db.user.create({ data });
 
   resfc(res, 201, { user: newUser });
 });
@@ -84,16 +81,15 @@ export const updateUserAsRoot = catchAsync(async (req, res, next) => {
     );
   }
 
-  const { name, phone, email, image, role, active } = req.body;
+  const { email, role, ...data } = req.body;
 
   if (email && email !== targetUser.email) {
     const existingEmail = await db.user.findUnique({ where: { email } });
     if (existingEmail) {
       return next(new AppError('E-mail já está em uso', 400));
     }
+    data.email = email;
   }
-
-  const data = filterValidFields({ name, phone, email, image, active });
 
   if (currentUser.role === 'root' && role) {
     data.role = role;
@@ -169,11 +165,19 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
   const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
 
   if (hasRootUser) {
+    if (hasRootUser.active === 'false') {
+      return resfc(
+        res,
+        200,
+        { exists: true },
+        '⚠️ Atenção: O único usuário com função de root está com a conta desativada. Isso pode comprometer o acesso administrativo ao sistema. Entre em contato com a equipe de T.I. imediatamente para restaurar o acesso.',
+      );
+    }
     return resfc(
       res,
       200,
       { exists: true },
-      'Já existe um usuário com a função de root.',
+      'Já existe um usuário com a função de root',
     );
   }
 
@@ -181,19 +185,19 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
     res,
     200,
     { exists: false },
-    'Não há usuário com a função de root registrado.',
+    'Não há usuário com a função de root registrado',
   );
 });
 
 export const handleRootCreation = catchAsync(async (req, res, next) => {
   const validatedData = createRootZodSchema.parse(req.body);
-
   // eslint-disable-next-line no-unused-vars
   const { passwordConfirm, ...userData } = validatedData;
-  const filteredData = filterValidFields(userData);
+
+  const data = { ...userData, role: 'root' };
 
   const newUser = await db.user.create({
-    data: { ...filteredData, role: 'root' },
+    data,
   });
 
   return createSendToken(newUser, 201, res);

@@ -1,8 +1,11 @@
 import AppError from '../utils/appError.js';
+import { filterValidFields } from '../utils/filterValidFields.js';
 
 function validate(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse(req.body);
+    const filteredData = filterValidFields(req.body);
+
+    const result = schema.safeParse(filteredData);
 
     if (!result.success) {
       const errorMessages = result.error.errors
