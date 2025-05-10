@@ -4,8 +4,8 @@ import {
   deleteArticle,
   getAllArticles,
   getArticle,
-  toggleArchivedArticle,
-  togglePublishedArticle,
+  toggleArchiveArticle,
+  togglePublishArticle,
   updateArticle,
 } from '../controllers/articleController.js';
 import validate from '../middlewares/validate.js';
@@ -13,7 +13,7 @@ import {
   createArticleZodSchema,
   updateArticleZodSchema,
 } from '../models/articleZodSchema.js';
-import { protect } from '../controllers/authController.js';
+import { protect, restrictTo } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -23,12 +23,12 @@ router
   .post(protect, validate(createArticleZodSchema), createArticle);
 
 router
-  .route('/:slug')
+  .route('/:id')
   .get(protect, getArticle)
   .patch(protect, validate(updateArticleZodSchema), updateArticle)
-  .delete(protect, deleteArticle);
+  .delete(protect, restrictTo('admin', 'root'), deleteArticle);
 
-router.patch('/:slug/publish', protect, togglePublishedArticle);
-router.patch('/:slug/archive', protect, toggleArchivedArticle);
+router.patch('/:id/publish', protect, togglePublishArticle);
+router.patch('/:id/archive', protect, toggleArchiveArticle);
 
 export default router;

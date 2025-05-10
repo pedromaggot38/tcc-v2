@@ -13,6 +13,13 @@ const handleBusinessError = (err) => {
   return new AppError('Erro de negócio: dados inválidos ou conflito.', 400);
 };
 
+const handleForeignKeyConstraintError = (err) => {
+  return new AppError(
+    'Não é possível excluir o usuário, pois ele tem registros associados que impedem a exclusão.',
+    400,
+  );
+};
+
 const handleZodError = (err) => {
   const errors = err.errors.map((e) => ({
     field: e.path.join('.'),
@@ -68,6 +75,9 @@ export default (err, req, res, next) => {
     }
     if (error.code === 'P2025') {
       error = handlePrismaNotFoundError(error);
+    }
+    if (error.code === 'P2003') {
+      error = handleForeignKeyConstraintError(error);
     }
 
     if (error.name === 'JsonWebTokenError') error = handleJWTError();

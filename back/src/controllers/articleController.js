@@ -3,6 +3,7 @@ import AppError from '../utils/appError.js';
 import db from '../config/db.js';
 import { resfc } from '../utils/response.js';
 import { filterValidFields } from '../utils/filterValidFields.js';
+import convertId from '../utils/convertId.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({
@@ -22,12 +23,10 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
 });
 
 export const getArticle = catchAsync(async (req, res, next) => {
-  const identifier = req.params.slug;
+  const id = convertId(req.params.id);
 
   const article = await db.article.findUnique({
-    where: isNaN(Number(identifier))
-      ? { slug: identifier }
-      : { id: parseInt(identifier, 10) },
+    where: { id },
     include: {
       user: {
         select: {
@@ -42,7 +41,7 @@ export const getArticle = catchAsync(async (req, res, next) => {
 
   if (!article) {
     return next(
-      new AppError('Nenhum artigo encontrado com esse slug ou id', 404),
+      new AppError('Nenhum artigo encontrado com esse id ou id', 404),
     );
   }
 
@@ -79,10 +78,10 @@ export const createArticle = catchAsync(async (req, res, next) => {
 });
 
 export const updateArticle = catchAsync(async (req, res, next) => {
-  const { slug } = req.params;
+  const id = convertId(req.params.id);
 
   const article = await db.article.findUnique({
-    where: { slug },
+    where: { id },
   });
 
   if (!article) {
@@ -97,36 +96,37 @@ export const updateArticle = catchAsync(async (req, res, next) => {
   });
 
   const updatedArticle = await db.article.update({
-    where: { slug },
+    where: { id },
     data,
   });
 
   resfc(res, 200, { article: updatedArticle });
 });
 
-export const togglePublishedArticle = catchAsync(async (req, res, next) => {
-  const slug = req.params.slug;
+export const togglePublishArticle = catchAsync(async (req, res, next) => {
+  const id = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { slug } });
+  const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
   }
 
-  let newStatus;
+  let newStatus = 'published' | 'draft';
 
-  if (article.status === 'published') {
-    newStatus = 'draft';
-  } else if (article.status === 'draft') {
-    newStatus = 'published';
-  } else {
-    return next(
-      new AppError('Não é possível alterar o status atual do artigo', 400),
-    );
+  switch (article.status) {
+    case 'published':
+      newStatus = 'draft';
+      break;
+    case 'draft':
+      newStatus = 'published';
+      break;
+    default:
+      return next(new AppError('Status do artigo não permite alteração', 400));
   }
 
   const updatedArticle = await db.article.update({
-    where: { slug },
+    where: { id },
     data: { status: newStatus },
   });
 
@@ -140,29 +140,33 @@ export const togglePublishedArticle = catchAsync(async (req, res, next) => {
   );
 });
 
-export const toggleArchivedArticle = catchAsync(async (req, res, next) => {
-  const slug = req.params.slug;
+export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
+  const id = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { slug } });
+  const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
   }
 
-  let newStatus;
+  let newStatus = 'draft' | 'archived';
 
-  if (article.status === 'draft' || article.status === 'published') {
-    newStatus = 'archived';
-  } else if (article.status === 'archived') {
-    newStatus = 'draft';
-  } else {
-    return next(
-      new AppError('Não é possível alterar o status atual do artigo', 400),
-    );
+  switch (article.status) {
+    case 'draft':
+    case 'published':
+      newStatus = 'archived';
+      break;
+    case 'archived':
+      newStatus = 'draft';
+      break;
+    default:
+      return next(
+        new AppError('Não é possível alterar o status atual do artigo', 400),
+      );
   }
 
   const updatedArticle = await db.article.update({
-    where: { slug },
+    where: { id },
     data: { status: newStatus },
   });
 
@@ -176,17 +180,16 @@ export const toggleArchivedArticle = catchAsync(async (req, res, next) => {
   );
 });
 
-// Verificar erros depois
 export const deleteArticle = catchAsync(async (req, res, next) => {
-  const slug = req.params.slug;
+  const id = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { slug } });
+  const article = await db.article.findUnique({ where: { id } });
 
   if (!article) {
-    return next(new AppError('Nenhum artigo encontrado com esse slug', 404));
+    return next(new AppError('Nenhum artigo encontrado com esse id', 404));
   }
 
-  await db.article.delete({ where: { slug } });
+  await db.article.delete({ where: { id } });
 
   resfc(res, 204);
 });
