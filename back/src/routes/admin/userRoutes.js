@@ -4,7 +4,7 @@ import {
   protect,
   restrictTo,
   updateMyPassword,
-} from '../controllers/authController.js';
+} from '../../controllers/admin/authController.js';
 import {
   createUserAsRoot,
   deleteUserAsRoot,
@@ -14,20 +14,20 @@ import {
   transferRootRole,
   updateUserAsRoot,
   updateUserPasswordAsRoot,
-} from '../controllers/rootController.js';
+} from '../../controllers/admin/rootController.js';
 import {
   deactivateMyAccount,
   getMe,
   updateMe,
-} from '../controllers/userController.js';
-import validate from '../middlewares/validate.js';
+} from '../../controllers/admin/userController.js';
+import validate from '../../middlewares/validate.js';
 import {
   createUserAsRootZodSchema,
   updateMyPasswordZodSchema,
   updateUserAsRootZodSchema,
   updateUserPasswordAsRootZodSchema,
   updateMeZodSchema,
-} from '../models/userZodSchema.js';
+} from '../../models/userZodSchema.js';
 
 const adminOrRoot = [protect, restrictTo('admin', 'root')];
 const rootOnly = [protect, restrictTo('root')];

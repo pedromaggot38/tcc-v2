@@ -1,18 +1,18 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import db from '../config/db.js';
-import AppError from '../utils/appError.js';
-import catchAsync from '../utils/catchAsync.js';
-import { resfc } from '../utils/response.js';
+import db from '../../config/db.js';
+import AppError from '../../utils/appError.js';
+import catchAsync from '../../utils/catchAsync.js';
+import { resfc } from '../../utils/response.js';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import {
   comparePassword,
   createPasswordResetToken,
   hasPasswordChangedAfter,
-} from '../utils/controllers/userUtils.js';
-import { createSendToken } from '../utils/controllers/authUtils.js';
-import sendEmail from '../utils/email.js';
+} from '../../utils/controllers/userUtils.js';
+import { createSendToken } from '../../utils/controllers/authUtils.js';
+import sendEmail from '../../utils/email.js';
 import { handleRootCreation } from './rootController.js';
 
 /*

@@ -1,13 +1,13 @@
-import db from '../config/db.js';
-import AppError from '../utils/appError.js';
-import catchAsync from '../utils/catchAsync.js';
-import { resfc } from '../utils/response.js';
+import db from '../../config/db.js';
+import AppError from '../../utils/appError.js';
+import catchAsync from '../../utils/catchAsync.js';
+import { resfc } from '../../utils/response.js';
 import {
   createRootZodSchema,
   updateUserPasswordAsRootZodSchema,
-} from '../models/userZodSchema.js';
-import { createSendToken } from '../utils/controllers/authUtils.js';
-import { comparePassword } from '../utils/controllers/userUtils.js';
+} from '../../models/userZodSchema.js';
+import { createSendToken } from '../../utils/controllers/authUtils.js';
+import { comparePassword } from '../../utils/controllers/userUtils.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   const users = await db.user.findMany({

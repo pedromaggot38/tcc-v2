@@ -1,5 +1,5 @@
 import { ZodError } from 'zod';
-import AppError from '../utils/appError.js';
+import AppError from '../../utils/appError.js';
 
 const handlePrismaDuplicateFieldError = (err) => {
   const field = err.meta?.target?.[0] || 'Campo';

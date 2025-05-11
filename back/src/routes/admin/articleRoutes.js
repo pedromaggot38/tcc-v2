@@ -7,13 +7,13 @@ import {
   toggleArchiveArticle,
   togglePublishArticle,
   updateArticle,
-} from '../controllers/articleController.js';
-import validate from '../middlewares/validate.js';
+} from '../../controllers/admin/articleController.js';
+import validate from '../../middlewares/validate.js';
 import {
   createArticleZodSchema,
   updateArticleZodSchema,
-} from '../models/articleZodSchema.js';
-import { protect, restrictTo } from '../controllers/authController.js';
+} from '../../models/articleZodSchema.js';
+import { protect, restrictTo } from '../../controllers/admin/authController.js';
 
 const router = express.Router();
 

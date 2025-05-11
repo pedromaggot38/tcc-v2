@@ -3,12 +3,14 @@ import express from 'express';
 import helmet from 'helmet';
 import path from 'path';
 
-import authRoutes from './routes/authRoutes.js';
-import userRouter from './routes/userRoutes.js';
-import doctorRouter from './routes/doctorRoutes.js';
-import articleRouter from './routes/articleRoutes.js';
-import globalErrorHandler from './controllers/errorController.js';
+import authRoutes from './routes/admin/authRoutes.js';
+import userRouter from './routes/admin/userRoutes.js';
+import doctorRouter from './routes/admin/doctorRoutes.js';
+import articleRouter from './routes/admin/articleRoutes.js';
+import globalErrorHandler from './controllers/admin/errorController.js';
 import AppError from './utils/appError.js';
+import publicArticleRouter from './routes/public/articleRoutes.js';
+import publicDoctorRouter from './routes/public/doctorRoutes.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const app = express();
@@ -40,6 +42,9 @@ app.use('/api/v0/admin/auth', authRoutes);
 app.use('/api/v0/admin/users', userRouter);
 app.use('/api/v0/admin/doctors', doctorRouter);
 app.use('/api/v0/admin/articles', articleRouter);
+
+app.use('/api/v0/public/articles', publicArticleRouter);
+app.use('/api/v0/public/doctors', publicDoctorRouter);
 
 app.all('*', (req, res, next) => {
   next(

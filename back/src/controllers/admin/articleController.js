@@ -1,8 +1,8 @@
-import catchAsync from '../utils/catchAsync.js';
-import AppError from '../utils/appError.js';
-import db from '../config/db.js';
-import { resfc } from '../utils/response.js';
-import convertId from '../utils/convertId.js';
+import catchAsync from '../../utils/catchAsync.js';
+import AppError from '../../utils/appError.js';
+import db from '../../config/db.js';
+import { resfc } from '../../utils/response.js';
+import convertId from '../../utils/convertId.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const articles = await db.article.findMany({

@@ -4,10 +4,10 @@ import {
   getAllDoctors,
   getDoctor,
   updateDoctor,
-} from '../controllers/doctorController.js';
-import { protect, restrictTo } from '../controllers/authController.js';
-import validate from '../middlewares/validate.js';
-import { createDoctorZodSchema } from '../models/doctorZodSchema.js';
+} from '../../controllers/admin/doctorController.js';
+import { protect, restrictTo } from '../../controllers/admin/authController.js';
+import validate from '../../middlewares/validate.js';
+import { createDoctorZodSchema } from '../../models/doctorZodSchema.js';
 
 const adminOrRoot = [protect, restrictTo('admin', 'root')];
 

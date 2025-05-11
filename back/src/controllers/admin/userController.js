@@ -1,7 +1,7 @@
-import catchAsync from '../utils/catchAsync.js';
-import db from '../config/db.js';
-import { resfc } from '../utils/response.js';
-import AppError from '../utils/appError.js';
+import catchAsync from '../../utils/catchAsync.js';
+import db from '../../config/db.js';
+import { resfc } from '../../utils/response.js';
+import AppError from '../../utils/appError.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;

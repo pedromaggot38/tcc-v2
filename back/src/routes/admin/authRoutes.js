@@ -3,8 +3,8 @@ import {
   login,
   forgotPassword,
   resetPassword,
-} from '../controllers/authController.js';
-import { checkRootExists } from '../controllers/rootController.js';
+} from '../../controllers/admin/authController.js';
+import { checkRootExists } from '../../controllers/admin/rootController.js';
 
 const router = express.Router();
 

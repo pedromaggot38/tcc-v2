@@ -1,8 +1,8 @@
-import db from '../config/db.js';
-import AppError from '../utils/appError.js';
-import catchAsync from '../utils/catchAsync.js';
-import convertId from '../utils/convertId.js';
-import { resfc } from '../utils/response.js';
+import db from '../../config/db.js';
+import AppError from '../../utils/appError.js';
+import catchAsync from '../../utils/catchAsync.js';
+import convertId from '../../utils/convertId.js';
+import { resfc } from '../../utils/response.js';
 
 export const getAllDoctors = catchAsync(async (req, res, next) => {
   const doctors = await db.doctor.findMany({
@@ -25,7 +25,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
     },
   });
 
-  resfc(res, 200, { doctors });
+  resfc(res, 200, { doctors }, null, doctors.length);
 });
 
 export const createDoctor = catchAsync(async (req, res, next) => {
@@ -42,8 +42,6 @@ export const createDoctor = catchAsync(async (req, res, next) => {
         }
       : [],
   };
-
-  console.log(data);
 
   const newDoctor = await db.doctor.create({ data });
   resfc(res, 201, { doctor: newDoctor });
