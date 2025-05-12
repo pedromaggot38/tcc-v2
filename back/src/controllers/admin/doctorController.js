@@ -2,11 +2,17 @@ import db from '../../config/db.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import convertId from '../../utils/convertId.js';
+import { parseQueryParams } from '../../utils/queryParser.js';
 import { resfc } from '../../utils/response.js';
 
 export const getAllDoctors = catchAsync(async (req, res, next) => {
+  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+
   const doctors = await db.doctor.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: { ...filters },
+    skip,
+    take: limit,
+    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
     include: {
       createdByUser: {
         select: {

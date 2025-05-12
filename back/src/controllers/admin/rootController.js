@@ -8,10 +8,16 @@ import {
 } from '../../models/userZodSchema.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
 import { comparePassword } from '../../utils/controllers/userUtils.js';
+import { parseQueryParams } from '../../utils/queryParser.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
+  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+
   const users = await db.user.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: { ...filters },
+    skip,
+    take: limit,
+    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
     select: {
       id: true,
       username: true,

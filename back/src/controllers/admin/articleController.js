@@ -3,10 +3,18 @@ import AppError from '../../utils/appError.js';
 import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
 import convertId from '../../utils/convertId.js';
+import { parseQueryParams } from '../../utils/queryParser.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
+  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+
   const articles = await db.article.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: {
+      ...filters,
+    },
+    skip,
+    take: limit,
+    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
     include: {
       createdByUser: {
         select: {
