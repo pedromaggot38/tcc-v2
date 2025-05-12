@@ -5,6 +5,4 @@ const router = express.Router();
 
 router.route('/').get(getAllDoctors);
 
-router.route('/:id');
-
 export default router;

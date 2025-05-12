@@ -7,7 +7,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
   const validFilterFields = ['name', 'specialty', 'crm'];
   const validSortFields = ['name', 'specialty'];
 
-  const { skip, limit, orderBy, filters } = parseQueryParams(
+  const { skip, orderBy, filters } = parseQueryParams(
     req.query,
     validFilterFields,
     validSortFields,
@@ -16,7 +16,6 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
   const doctors = await db.doctor.findMany({
     where: { visible: true, ...filters },
     skip,
-    take: limit,
     orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
     select: {
       id: true,
