@@ -12,7 +12,7 @@ import {
   hasPasswordChangedAfter,
 } from '../../utils/controllers/userUtils.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
-import sendEmail from '../../utils/email.js';
+import { sendEmail } from '../../utils/email.js';
 import { handleRootCreation } from './rootController.js';
 
 /*
@@ -261,4 +261,11 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
   resfc(res, 200, null, 'Senha alterada com sucesso');
 });
 
-export const logout = catchAsync(async (req, res, next) => {});
+export const logout = catchAsync(async (req, res, next) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  resfc(200);
+});

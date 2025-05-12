@@ -7,6 +7,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
     where: { visible: true },
     orderBy: { createdAt: 'desc' },
     select: {
+      id: true,
       name: true,
       specialty: true,
       state: true,

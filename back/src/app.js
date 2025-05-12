@@ -2,18 +2,26 @@ import rateLimit from 'express-rate-limit';
 import express from 'express';
 import helmet from 'helmet';
 import path from 'path';
+import cors from 'cors';
 
-import authRoutes from './routes/admin/authRoutes.js';
-import userRouter from './routes/admin/userRoutes.js';
-import doctorRouter from './routes/admin/doctorRoutes.js';
-import articleRouter from './routes/admin/articleRoutes.js';
 import globalErrorHandler from './controllers/admin/errorController.js';
-import AppError from './utils/appError.js';
 import publicArticleRouter from './routes/public/articleRoutes.js';
 import publicDoctorRouter from './routes/public/doctorRoutes.js';
+import articleRouter from './routes/admin/articleRoutes.js';
+import doctorRouter from './routes/admin/doctorRoutes.js';
+import authRoutes from './routes/admin/authRoutes.js';
+import userRouter from './routes/admin/userRoutes.js';
+import AppError from './utils/appError.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const app = express();
+
+app.use(
+  cors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+  }),
+);
 
 app.use(helmet());
 app.use(
