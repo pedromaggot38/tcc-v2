@@ -5,6 +5,16 @@ const handlePrismaDuplicateFieldError = (err) => {
   const field = err.meta?.target?.[0] || 'Campo';
   return new AppError(`${field} já está em uso.`, 400);
 };
+const handlePrismaValidationError = (err) => {
+  // Extrair o nome do campo incorreto
+  const invalidField = err.message.match(/Unknown argument `(\w+)`/);
+  const fieldName = invalidField ? invalidField[1] : 'Campo';
+
+  return new AppError(
+    `Campo '${fieldName}' não encontrado ou digitado incorretamente.`,
+    400,
+  );
+};
 const handlePrismaNotFoundError = (err) => {
   return new AppError('Registro não encontrado.', 404);
 };
@@ -83,6 +93,10 @@ export default (err, req, res, next) => {
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
     if (err instanceof ZodError) error = handleZodError(err);
+
+    if (error.name === 'PrismaClientValidationError') {
+      error = handlePrismaValidationError(error);
+    }
 
     if (
       error instanceof AppError &&

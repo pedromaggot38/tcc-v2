@@ -4,7 +4,14 @@ import { parseQueryParams } from '../../utils/queryParser.js';
 import { resfc } from '../../utils/response.js';
 
 export const getAllDoctors = catchAsync(async (req, res, next) => {
-  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+  const validFilterFields = ['name', 'specialty', 'crm'];
+  const validSortFields = ['name', 'specialty'];
+
+  const { skip, limit, orderBy, filters } = parseQueryParams(
+    req.query,
+    validFilterFields,
+    validSortFields,
+  );
 
   const doctors = await db.doctor.findMany({
     where: { visible: true, ...filters },

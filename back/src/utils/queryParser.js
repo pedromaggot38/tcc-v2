@@ -1,18 +1,19 @@
-export const parseQueryParams = (query) => {
+export const parseQueryParams = (
+  query,
+  validFilterFields = [],
+  validSortFields = [],
+) => {
   const MAX_LIMIT = 100;
 
   const page = Math.max(parseInt(query.page) || 1, 1);
-
   const rawLimit = parseInt(query.limit);
-
   const limit = rawLimit > 0 ? Math.min(rawLimit, MAX_LIMIT) : 10;
-
   const skip = (page - 1) * limit;
 
   const orderBy = {};
   if (query.sort && typeof query.sort === 'string') {
     const [field, direction] = query.sort.split(';');
-    if (field && direction) {
+    if (field && direction && validSortFields.includes(field)) {
       orderBy[field] = direction === 'asc' ? 'asc' : 'desc';
     }
   }
@@ -22,7 +23,7 @@ export const parseQueryParams = (query) => {
     const filterParams = query.filter.split(',');
     filterParams.forEach((filter) => {
       const [field, operatorValue] = filter.split(':');
-      if (field && operatorValue) {
+      if (field && operatorValue && validFilterFields.includes(field)) {
         const [operator, value] = operatorValue.split('[');
         const cleanValue = value ? value.replace(']', '') : value;
 
@@ -44,28 +45,19 @@ export const parseQueryParams = (query) => {
               filters[field] = { not: cleanValue };
               break;
             case 'like':
-              filters[field] = { contains: cleanValue, mode: 'insensitive' };
-              break;
             case 'contains':
               filters[field] = { contains: cleanValue, mode: 'insensitive' };
               break;
+            case 'eq':
+              filters[field] = { equals: cleanValue };
+              break;
             default:
-              filters[field] = cleanValue;
+              break;
           }
-        } else {
-          filters[field] = operatorValue;
         }
       }
     });
   }
 
-  // Validação de filtros - Remover filtros inválidos (undefined ou null)
-  const validFilters = Object.keys(filters).reduce((acc, key) => {
-    if (filters[key] !== undefined && filters[key] !== null) {
-      acc[key] = filters[key];
-    }
-    return acc;
-  }, {});
-
-  return { page, limit, skip, orderBy, filters: validFilters };
+  return { page, limit, skip, orderBy, filters };
 };

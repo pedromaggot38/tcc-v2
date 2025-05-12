@@ -11,7 +11,14 @@ import { comparePassword } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 
 export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
-  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+  const validFilterFields = ['username', 'email', 'name', 'role'];
+  const validSortFields = ['createdAt', 'username', 'active'];
+
+  const { skip, limit, orderBy, filters } = parseQueryParams(
+    req.query,
+    validFilterFields,
+    validSortFields,
+  );
 
   const users = await db.user.findMany({
     where: { ...filters },

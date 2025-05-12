@@ -6,7 +6,14 @@ import convertId from '../../utils/convertId.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
-  const { skip, limit, orderBy, filters } = parseQueryParams(req.query);
+  const validFilterFields = ['title', 'author', 'status'];
+  const validSortFields = ['createdAt', 'title', 'status'];
+
+  const { skip, limit, orderBy, filters } = parseQueryParams(
+    req.query,
+    validFilterFields,
+    validSortFields,
+  );
 
   const articles = await db.article.findMany({
     where: {
