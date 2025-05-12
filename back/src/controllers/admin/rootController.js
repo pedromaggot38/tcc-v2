@@ -40,7 +40,7 @@ export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
     },
   });
 
-  resfc(res, 200, { users });
+  resfc(res, 200, { users }, null, users.length);
 });
 
 export const getUserAsRoot = catchAsync(async (req, res, next) => {

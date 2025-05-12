@@ -5,8 +5,32 @@ const handlePrismaDuplicateFieldError = (err) => {
   const field = err.meta?.target?.[0] || 'Campo';
   return new AppError(`${field} já está em uso.`, 400);
 };
+const handlePrismaEnumError = (err) => {
+  const match = err.message.match(
+    /Invalid `prisma\.(\w+)\.findMany\(\)` invocation:\s*{[^]*?(\w+): \{\s*equals: ".*?"\s*\}/s,
+  );
+
+  const field = match?.[2] || 'campo';
+
+  const expectedTypeMatch = err.message.match(/Expected (\w+)\./);
+  const expectedType = expectedTypeMatch?.[1] || 'valor válido';
+
+  // Substituir valores esperados pelos seus equivalentes legíveis para o usuário
+  const fieldNames = {
+    UserRole: 'root, admin, journalist',
+    ArticleStatus: 'published, draft, archived',
+    // Adicione outros tipos de enum aqui
+  };
+
+  const readableValues = fieldNames[expectedType] || expectedType; // Valor mais amigável para o tipo
+
+  return new AppError(
+    `Valor inválido para o campo '${field}'. Esperado: ${readableValues}.`,
+    400,
+  );
+};
+
 const handlePrismaValidationError = (err) => {
-  // Extrair o nome do campo incorreto
   const invalidField = err.message.match(/Unknown argument `(\w+)`/);
   const fieldName = invalidField ? invalidField[1] : 'Campo';
 
@@ -95,7 +119,11 @@ export default (err, req, res, next) => {
     if (err instanceof ZodError) error = handleZodError(err);
 
     if (error.name === 'PrismaClientValidationError') {
-      error = handlePrismaValidationError(error);
+      if (error.message.includes('Expected')) {
+        error = handlePrismaEnumError(error);
+      } else {
+        error = handlePrismaValidationError(error);
+      }
     }
 
     if (
