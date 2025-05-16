@@ -1,4 +1,5 @@
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
 import path from 'path';
@@ -41,6 +42,8 @@ const limiter = rateLimit({
   message: 'Too many requests from this ip. Please try again in an hour',
 });
 app.use('/api/v0/admin', limiter);
+
+app.use(cookieParser());
 
 app.use(express.json({ limit: '10kb' }));
 

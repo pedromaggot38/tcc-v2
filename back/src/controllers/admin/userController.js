@@ -5,7 +5,17 @@ import AppError from '../../utils/appError.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
-  const user = await db.user.findUnique({ where: { id } });
+  const user = await db.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      username: true,
+      role: true,
+      active: true,
+    },
+  });
 
   if (!user) {
     return next(new AppError('Usuário não encontrado', 404));

@@ -83,6 +83,10 @@ export const protect = catchAsync(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
 
+  if (!token && req.cookies?.jwt) {
+    token = req.cookies.jwt;
+  }
+
   if (!token) {
     return next(
       new AppError(
@@ -109,6 +113,12 @@ export const protect = catchAsync(async (req, res, next) => {
   if (!currentUser) {
     return next(
       new AppError('O usuário associado a este token não existe mais', 401),
+    );
+  }
+
+  if (!currentUser.active) {
+    return next(
+      new AppError('Este usuário está desativado. Acesso negado.', 403),
     );
   }
 
@@ -222,6 +232,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     where: { id: user.id },
     data: {
       password,
+      passwordChangedAt: new Date(),
       passwordResetToken: null,
       passwordResetExpires: null,
     },
@@ -255,17 +266,17 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
 
   await db.user.update({
     where: { id: userId },
-    data: { password },
+    data: { password, passwordChangedAt: new Date() },
   });
 
   resfc(res, 200, null, 'Senha alterada com sucesso');
 });
 
 export const logout = catchAsync(async (req, res, next) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
+  res.cookie('jwt', '', {
+    expires: new Date(Date.now(0)),
     httpOnly: true,
   });
 
-  resfc(200);
+  return resfc(res, 200, null, 'Logout realizado com sucesso.');
 });
