@@ -3,8 +3,8 @@ import { hashPassword } from '../utils/controllers/userUtils.js';
 import slugify from 'slugify';
 
 const globalForPrisma = globalThis;
-const db = globalForPrisma.prisma || new PrismaClient();
 
+// Funções de lógica de negócio existentes
 const removeNullFields = (obj) => {
   if (obj && typeof obj === 'object') {
     Object.entries(obj).forEach(([key, value]) => {
@@ -61,21 +61,38 @@ const processResult = (result) => {
   }
 };
 
-db.$use(async (params, next) => {
-  if (params.model === 'User' && ['create', 'update'].includes(params.action)) {
-    await hashUserPassword(params);
-  }
+const prismaWithExtensions = new PrismaClient().$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, operation, args, query }) {
+        const params = {
+          model,
+          action: operation,
+          args,
+          runInTransaction: false,
+        };
 
-  if (params.model === 'Article' && params.action === 'create') {
-    await generateArticleSlug(params, db);
-  }
+        // Lógica de pré-operação
+        if (params.model === 'User' && ['create', 'update'].includes(params.action)) {
+          await hashUserPassword(params);
+        }
 
-  const result = await next(params);
+        if (params.model === 'Article' && params.action === 'create') {
+          const localDb = prismaWithExtensions;
+          await generateArticleSlug(params, localDb);
+        }
 
-  processResult(result);
+        const result = await query(args);
 
-  return result;
+        processResult(result);
+
+        return result;
+      },
+    },
+  },
 });
+
+const db = globalForPrisma.prisma || prismaWithExtensions;
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;
 

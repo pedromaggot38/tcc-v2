@@ -12,7 +12,6 @@ import {
   hasPasswordChangedAfter,
 } from '../../utils/controllers/userUtils.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
-import { sendEmail } from '../../utils/email.js';
 import { handleRootCreation } from './rootController.js';
 
 /*
@@ -173,11 +172,11 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   const message = `Esqueceu sua senha? Entre neste link para criar uma nova senha: ${resetURL}`;
 
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Seu token de redefinição de senha (válido por 10 min)',
-      message,
-    });
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: 'Seu token de redefinição de senha (válido por 10 min)',
+    //   message,
+    // });
 
     resfc(res, 200, null, 'Token enviado para o seu email');
     // eslint-disable-next-line no-unused-vars
