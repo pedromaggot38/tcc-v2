@@ -57,6 +57,8 @@ O projeto é dividido em duas seções principais:
   - **JWT (JSON Web Token)** para autenticação de usuários.
 - **Banco de Dados**:
   - **PostgreSQL** para armazenamento de dados.
+- **Containerização**:
+  - **Docker** e **Docker Compose** para ambiente de desenvolvimento e produção.
 - **Front-End**:
   - (Descreva aqui as tecnologias do front-end que está usando, como React, Next.js, etc. Caso queira trabalhar somente com o back-end por enquanto, pode pular essa parte.)
 
@@ -66,53 +68,136 @@ O projeto é dividido em duas seções principais:
 
 Certifique-se de ter os seguintes requisitos instalados:
 
-- **Node.js**: [Baixar Node.js](https://nodejs.org)
-- **PostgreSQL**: Certifique-se de que o PostgreSQL esteja instalado e configurado corretamente em sua máquina.
+- **Docker**: [Baixar Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Docker Compose**: Geralmente vem junto com o Docker Desktop
+- **Node.js**: [Baixar Node.js](https://nodejs.org) (opcional, apenas para desenvolvimento local)
 
-### Passos para Rodar o Back-End
+### 🐳 **Opção 1: Desenvolvimento com Docker (Recomendado)**
+
+#### **Configuração Inicial:**
 
 1. **Clone o repositório**:
+```bash
+git clone https://github.com/pedromaggot38/tcc-v2.git
+cd tcc-v2
+```
+
+2. **Configure as variáveis de ambiente**:
+```bash
+# Copie o arquivo de exemplo
+cp back/env.example ./.env
+
+# Edite o arquivo .env com suas configurações
+# IMPORTANTE: Nunca commite o arquivo .env no git!
+```
+
+3. **Inicie o projeto**:
+```bash
+# Iniciar todos os serviços
+docker-compose up
+
+# Para rodar em background
+docker-compose up -d
+
+# Para reconstruir após mudanças
+docker-compose up --build
+```
+
+4. **Acesse a aplicação**:
+- **Backend**: http://localhost:3000
+- **Banco PostgreSQL**: localhost:5432
+
+#### **Comandos úteis durante o desenvolvimento**:
 
 ```bash
-git clone https://github.com/seu-usuario/nome-do-repositorio.git
-cd nome-do-repositorio
+# Parar o projeto
+docker-compose down
+
+# Ver logs em tempo real
+docker-compose up -f
+
+# Ver logs de um serviço específico
+docker-compose logs back
+docker-compose logs db
+
+# Reiniciar apenas o backend
+docker-compose restart back
+
+# Executar comandos dentro do container
+docker-compose exec back npx prisma studio
+docker-compose exec back npx prisma migrate dev
+docker-compose exec back npm run start
+
+# Acessar o container interativamente
+docker-compose exec back sh
+```
+
+### 💻 **Opção 2: Desenvolvimento Local (Sem Docker)**
+
+#### **Configuração do Banco de Dados**:
+
+1. **Instale o PostgreSQL** em sua máquina
+2. **Crie um banco de dados** chamado `hospitaldb`
+
+#### **Configuração da Aplicação**:
+
+1. **Entre na pasta back**:
+```bash
+cd back
 ```
 
 2. **Instale as dependências**:
-
 ```bash
 npm install
 ```
 
-3. **Configuração do Banco de Dados**:
+3. **Configure as variáveis de ambiente**:
+```bash
+# Copie o arquivo de exemplo
+cp env.example .env
 
-Crie um arquivo `.env` na raiz do projeto com a variável de ambiente `DATABASE_URL`, que contém a URL de conexão com seu banco de dados PostgreSQL. Exemplo:
-
+# Edite o arquivo .env com suas configurações
 ```
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"
-```
 
-4. **Executando as Migrações do Prisma**:
-
-Após configurar o banco de dados, rode as migrações para configurar as tabelas no banco.
-
+4. **Execute as migrações**:
 ```bash
 npx prisma migrate dev
 ```
 
-5. **Rodando o Servidor**:
-
-Para rodar o servidor back-end:
-
+5. **Inicie o servidor**:
 ```bash
 npm start
 ```
 
-O servidor estará disponível em `http://localhost:3000`.
+### 📋 **Configuração das Variáveis de Ambiente**
 
-### Passos para Rodar o Front-End
+Crie um arquivo `.env` na pasta `back/` com as seguintes variáveis:
 
-()
+```env
+# Configurações do Banco de Dados
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hospitaldb?schema=public"
+
+# Configurações JWT
+JWT_SECRET="sua_chave_secreta_muito_segura_aqui"
+JWT_EXPIRES_IN="90d"
+JWT_COOKIE_EXPIRES_IN=90
+
+# Configurações do Servidor
+PORT=3000
+NODE_ENV=development
+
+# Configurações de Email (Mailtrap)
+MAILTRAP_TOKEN="seu_token_mailtrap"
+MAILTRAP_INBOX_ID="seu_inbox_id"
+
+# Configurações de Segurança
+BCRYPT_SALT_ROUNDS=12
+```
+
+**⚠️ IMPORTANTE:**
+- **NUNCA** commite o arquivo `.env` no git
+- Altere as senhas e chaves secretas para valores seguros
+- Para produção, use variáveis de ambiente do servidor
 
 ## Estrutura de Banco de Dados
 
@@ -123,10 +208,47 @@ O banco de dados está estruturado com as seguintes tabelas:
 - **Doctor**: Tabela de médicos com `name`, `specialty`, `crm`, `phone`, `email`, `visibility` e os horários de trabalho.
 - **Schedule**: Tabela para armazenar os horários de trabalho dos médicos, incluindo o **dia da semana** e **hora de início e fim**.
 
+## 🔧 **Troubleshooting**
+
+### **Problemas comuns do Docker**:
+
+1. **Porta já em uso**:
+   ```bash
+   # Verifique se algo está usando a porta 3000
+   netstat -ano | findstr :3000
+   # Ou pare o serviço que está usando a porta
+   ```
+
+2. **Container não inicia**:
+   ```bash
+   # Verifique os logs
+   docker-compose logs back
+   docker-compose logs db
+   ```
+
+3. **Banco não conecta**:
+   ```bash
+   # Aguarde alguns segundos para o PostgreSQL inicializar
+   # O script aguarda automaticamente a conexão
+   ```
+
+4. **Permissões de arquivo**:
+   ```bash
+   # No Windows, pode ser necessário executar como administrador
+   # No Linux/Mac, verifique as permissões dos arquivos
+   ```
+
+## 📚 **Recursos Adicionais**
+
+- **Prisma Studio**: `docker-compose exec back npx prisma studio`
+- **Documentação Prisma**: [https://www.prisma.io/docs](https://www.prisma.io/docs)
+- **Documentação Docker**: [https://docs.docker.com](https://docs.docker.com)
+
 ## Notas Finais
 
 - Este projeto ainda está em processo de refatoração e pode sofrer alterações.
 - **Contribuições são bem-vindas**! Sinta-se à vontade para fazer melhorias, correções ou sugerir novas funcionalidades.
+- O ambiente Docker garante consistência entre diferentes máquinas de desenvolvimento.
 
 ## Licença
 
