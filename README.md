@@ -177,6 +177,10 @@ Crie um arquivo `.env` na pasta `back/` com as seguintes variáveis:
 # Configurações do Banco de Dados
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hospitaldb?schema=public"
 
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=hospitaldb
+
 # Configurações JWT
 JWT_SECRET="sua_chave_secreta_muito_segura_aqui"
 JWT_EXPIRES_IN="90d"

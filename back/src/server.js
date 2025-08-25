@@ -13,9 +13,20 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Error connecting to the database', error);
-  } finally {
-    await db.$disconnect();
+    process.exit(1);
   }
 }
 
 startServer();
+
+// Graceful shutdown
+const shutdown = async () => {
+  try {
+    await db.$disconnect();
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

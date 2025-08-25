@@ -4,6 +4,7 @@ services:
       context: ./back
       dockerfile: Dockerfile.dev
     ports:
+      - "3000:3000" # Porta da API
       - "5555:5555" # Porta do Prisma Studio
     environment:
       NODE_ENV: development

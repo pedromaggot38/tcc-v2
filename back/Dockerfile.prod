@@ -9,8 +9,9 @@ WORKDIR /usr/src/app
 # Copie os ficheiros de dependência
 COPY package*.json ./
 
-# Instale APENAS as dependências de produção
-RUN npm ci --only=production
+# Instale dependências de produção e a CLI do Prisma (necessária no entrypoint)
+RUN npm ci --only=production \
+  && npm install prisma --no-save
 
 # Copie o resto do código da aplicação
 COPY . .
