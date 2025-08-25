@@ -2,17 +2,20 @@
 
 set -e
 
-echo "🔄 Aguardando o banco de dados estar disponível..."
+echo "🔄 Aguardando o banco de dados e aplicando migrações..."
 
-until npx prisma db pull; do
-  >&2 echo "PostgreSQL não está disponível - a aguardar..."
-  sleep 1
+# Tentativa de aplicar migrações; se falhar (ex.: DB vazio/sem migrações), faz fallback para db push
+until (
+  npx prisma migrate deploy || (
+    echo "⚠️ migrate deploy falhou. Tentando sincronizar schema com prisma db push..." && \
+    npx prisma db push --accept-data-loss
+  )
+); do
+  >&2 echo "PostgreSQL não está disponível ou sincronização falhou - a aguardar..."
+  sleep 2
 done
 
-echo "✅ PostgreSQL está pronto."
-echo "📊 Executando migrações do Prisma..."
-npx prisma migrate deploy
-
+echo "✅ Esquema pronto."
 echo "⚙️ Gerando o Prisma Client..."
 npx prisma generate
 
