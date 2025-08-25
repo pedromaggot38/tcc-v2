@@ -36,7 +36,7 @@ export const createRootZodSchema = z
     path: ['passwordConfirm'],
   });
 
-export const createUserAsRootZodSchema = z
+export const createUserZodSchema = z
   .object({
     username: z
       .string()

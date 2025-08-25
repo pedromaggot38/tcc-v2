@@ -55,26 +55,24 @@ export const getUser = catchAsync(async (req, res, next) => {
   resfc(res, 200, { user });
 });
 
-export const createUserAsRoot = catchAsync(async (req, res, next) => {
+export const createUser = catchAsync(async (req, res, next) => {
   const { username, password, name, phone, email, image, role } = req.body;
   const data = { username, password, name, phone, email, image };
 
   const requesterRole = req.user.role;
 
-  if (requesterRole === "root"){
-    if(role === 'root'){
+  if (requesterRole === 'root') {
+    if (role === 'root') {
       return next(
-        new AppError('Não é permitido criar um segundo usuário root no sistema', 403)
-      )
+        new AppError(
+          'Não é permitido criar um segundo usuário root no sistema',
+          403,
+        ),
+      );
     }
-    data.role = role || 'journalist'
-  } else if (requesterRole === 'admin'){
-    if (role){
-      return next(
-        new AppError('Administradores não podem definir o cargo de novos usuários', 403)
-      )
-    }
-    data.role = 'journalist'
+    data.role = role || 'journalist';
+  } else if (requesterRole === 'admin') {
+    data.role = 'journalist';
   }
 
   const newUser = await db.user.create({ data });

@@ -2,7 +2,7 @@ import express from 'express';
 
 import { updateMyPassword } from '../../controllers/admin/authController.js';
 import {
-  createUserAsRoot,
+  createUser,
   deleteUserAsRoot,
   eligibleForRootTransfer,
   getAllUsers,
@@ -18,11 +18,11 @@ import {
 } from '../../controllers/admin/userController.js';
 import validate from '../../middlewares/validate.js';
 import {
-  createUserAsRootZodSchema,
   updateMyPasswordZodSchema,
   updateUserPasswordAsRootZodSchema,
   updateMeZodSchema,
   updateUserZodSchema,
+  createUserZodSchema,
 } from '../../models/userZodSchema.js';
 import {
   adminOrRoot,
@@ -34,12 +34,7 @@ import {
 const router = express.Router();
 
 router.get('/', ...adminOrRoot, getAllUsers);
-router.post(
-  '/',
-  ...adminOrRoot,
-  validate(createUserAsRootZodSchema),
-  createUserAsRoot,
-);
+router.post('/', ...adminOrRoot, validate(createUserZodSchema), createUser);
 router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
 router.post('/transfer-root', ...rootOnly, transferRootRole);
 
