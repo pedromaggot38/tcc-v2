@@ -7,7 +7,7 @@
   "scripts": {
     "start": "nodemon --env-file=.env src/server.js",
     "start:prod": "node --env-file=.env src/server.js",
-    "start:dev:docker": "nodemon src/server.js",
+    "start:dev:docker": "nodemon -L src/server.js",
     "start:prod:docker": "node src/server.js"
   },
   "keywords": [],

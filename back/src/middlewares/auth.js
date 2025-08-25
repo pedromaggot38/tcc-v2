@@ -19,13 +19,17 @@ export const protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(new AppError('teste', 401));
+    return next(
+      new AppError(
+        'Você não está logado. Por favor, faça o login para obter acesso',
+        401,
+      ),
+    );
   }
 
   let decoded;
   try {
     decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    // eslint-disable-next-line no-unused-vars
   } catch (err) {
     return next(
       new AppError(
@@ -64,7 +68,9 @@ export const protect = catchAsync(async (req, res, next) => {
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return next(new AppError('teste', 403));
+      return next(
+        new AppError('Você não tem permissão para realizar esta ação', 403),
+      );
     }
     next();
   };
@@ -76,7 +82,9 @@ export const checkUserHierarchy = catchAsync(async (req, res, next) => {
   });
 
   if (!targetUser) {
-    return next(new AppError('teste', 404));
+    return next(
+      new AppError('O usuário alvo da operação não foi encontrado', 404),
+    );
   }
 
   const currentUser = req.user;
@@ -85,7 +93,12 @@ export const checkUserHierarchy = catchAsync(async (req, res, next) => {
     currentUser.role === 'admin' && ['admin', 'root'].includes(targetUser.role);
 
   if (isAdminEditingAdminOrRoot) {
-    return next(new AppError('dasdaskj', 403));
+    return next(
+      new AppError(
+        'Administradores não podem editar outros administradores ou o root',
+        403,
+      ),
+    );
   }
   // Se passou na verificação, pode prosseguir para o próximo middleware ou controller
   next();

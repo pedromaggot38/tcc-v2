@@ -89,17 +89,6 @@ export const updateUser = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const currentUser = req.user;
-
-  if (
-    currentUser.role === 'admin' &&
-    ['admin', 'root'].includes(targetUser.role)
-  ) {
-    return next(
-      new AppError('Você não tem permissão para editar este usuário', 403),
-    );
-  }
-
   const { email, role, ...data } = req.body;
 
   if (email && email !== targetUser.email) {
@@ -184,7 +173,7 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
   const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
 
   if (hasRootUser) {
-    if (hasRootUser.active === 'false') {
+    if (hasRootUser.active === false) {
       return resfc(
         res,
         200,
@@ -210,7 +199,7 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
 
 export const handleRootCreation = catchAsync(async (req, res, next) => {
   const validatedData = createRootZodSchema.parse(req.body);
-  // eslint-disable-next-line no-unused-vars
+
   const { passwordConfirm, ...userData } = validatedData;
 
   const data = { ...userData, role: 'root' };
@@ -223,13 +212,12 @@ export const handleRootCreation = catchAsync(async (req, res, next) => {
 });
 
 export const transferRootRole = catchAsync(async (req, res, next) => {
+  const { targetUsername, password } = req.body;
   const currentUserId = req.user.id;
-  const isRoot = req.user.role === 'root';
-  const targetUsername = req.body.username;
 
-  if (!isRoot) {
+  if (!password) {
     return next(
-      new AppError('Você não é um usuário root para transferir o cargo', 403),
+      new AppError('A sua senha é necessária para confirmar a operação.', 400),
     );
   }
   if (!targetUsername) {
@@ -243,6 +231,10 @@ export const transferRootRole = catchAsync(async (req, res, next) => {
 
   if (!currentUser) {
     return next(new AppError('Usuário root atual não encontrado', 404));
+  }
+  const isPasswordValid = await comparePassword(password, currentUser.password);
+  if (!isPasswordValid) {
+    return next(new AppError('A senha fornecida está incorreta.', 401));
   }
 
   if (!targetUser || !targetUser.active) {

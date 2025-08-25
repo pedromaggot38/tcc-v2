@@ -35,6 +35,7 @@ const router = express.Router();
 
 router.get('/', ...adminOrRoot, getAllUsers);
 router.post('/', ...adminOrRoot, validate(createUserZodSchema), createUser);
+
 router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
 router.post('/transfer-root', ...rootOnly, transferRootRole);
 
