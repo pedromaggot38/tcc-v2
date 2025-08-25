@@ -13,7 +13,8 @@ echo "✅ PostgreSQL está pronto."
 echo "📊 Executando migrações do Prisma..."
 npx prisma migrate deploy
 
+echo "⚙️ Gerando o Prisma Client..." # Adicionado
+npx prisma generate # <-- ESTA É A LINHA A SER ADICIONADA
+
 echo "🚀 Iniciando a aplicação..."
-
-
 exec "$@"
