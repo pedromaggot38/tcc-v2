@@ -61,7 +61,8 @@ export const deactivateMyAccount = catchAsync(async (req, res, next) => {
   if (user.role === 'root') {
     return next(
       new AppError(
-        'Não é possível desativar sua conta enquanto você for o único administrador root ativo. Transfira a permissão para outro usuário antes de continuar',
+        'Não é possível desativar sua conta enquanto você for o root. Transfira a permissão para outro usuário antes de continuar',
+        403,
       ),
     );
   }
