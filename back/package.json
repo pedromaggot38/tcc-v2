@@ -5,8 +5,10 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "npx nodemon src/server.js",
-    "start:prod": "cross-env NODE_ENV=production nodemon src/server.js"
+    "start": "nodemon --env-file=.env src/server.js",
+    "start:prod": "node --env-file=.env src/server.js",
+    "start:dev:docker": "nodemon src/server.js",
+    "start:prod:docker": "node src/server.js"
   },
   "keywords": [],
   "author": "Pedro Sanches",

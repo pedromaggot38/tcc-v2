@@ -1,0 +1,13 @@
+services:
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5555:5555" # Porta do Prisma Studio
+    environment:
+      NODE_ENV: development
+    command: npm run start:dev:docker # Comando com nodemon
+    volumes: # Volumes para hot-reloading
+      - ./back:/usr/src/app
+      - /usr/src/app/node_modules

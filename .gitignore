@@ -53,6 +53,8 @@ web_modules/
 # Optional npm cache directory
 .npm
 
+/back/src/generated/
+
 # Optional eslint cache
 .eslintcache
 
