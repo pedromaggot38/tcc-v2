@@ -4,12 +4,9 @@ import db from '../../config/db.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
-import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import {
   comparePassword,
   createPasswordResetToken,
-  hasPasswordChangedAfter,
 } from '../../utils/controllers/userUtils.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
 import { handleRootCreation } from './rootController.js';
@@ -72,79 +69,6 @@ export const login = catchAsync(async (req, res, next) => {
 
   createSendToken(user, 200, res);
 });
-
-export const protect = catchAsync(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (!token && req.cookies?.jwt) {
-    token = req.cookies.jwt;
-  }
-
-  if (!token) {
-    return next(
-      new AppError(
-        'Sessão expirada ou não autenticada. Por favor, entre novamente',
-        401,
-      ),
-    );
-  }
-
-  let decoded;
-  try {
-    decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    // eslint-disable-next-line no-unused-vars
-  } catch (err) {
-    return next(
-      new AppError(
-        'Token inválido ou expirado. Por favor, faça login novamente.',
-        401,
-      ),
-    );
-  }
-
-  const currentUser = await db.user.findUnique({ where: { id: decoded.id } });
-  if (!currentUser) {
-    return next(
-      new AppError('O usuário associado a este token não existe mais', 401),
-    );
-  }
-
-  if (!currentUser.active) {
-    return next(
-      new AppError('Este usuário está desativado. Acesso negado.', 403),
-    );
-  }
-
-  if (hasPasswordChangedAfter(currentUser.passwordChangedAt, decoded.iat)) {
-    return next(
-      new AppError(
-        'Senha foi alterada recentemente. Por favor, faça login novamente.',
-        401,
-      ),
-    );
-  }
-
-  req.user = currentUser;
-
-  next();
-});
-
-export const restrictTo = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new AppError('Você não possui permissão para esta ação', 403),
-      );
-    }
-    next();
-  };
-};
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   const { username } = req.body;

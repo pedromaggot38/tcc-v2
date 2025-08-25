@@ -102,7 +102,7 @@ export const updateMeZodSchema = z.object({
     .optional(),
 });
 
-export const updateUserAsRootZodSchema = z.object({
+export const updateUserZodSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').optional(),
   email: z
     .string()

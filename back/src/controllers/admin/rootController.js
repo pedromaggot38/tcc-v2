@@ -10,7 +10,7 @@ import { createSendToken } from '../../utils/controllers/authUtils.js';
 import { comparePassword } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 
-export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
+export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
   const validSortFields = ['createdAt', 'username', 'active'];
 
@@ -43,7 +43,7 @@ export const getAllUsersAsRoot = catchAsync(async (req, res, next) => {
   resfc(res, 200, { users }, null, users.length);
 });
 
-export const getUserAsRoot = catchAsync(async (req, res, next) => {
+export const getUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
 
   const user = await db.user.findUnique({ where: { username } });
@@ -56,17 +56,25 @@ export const getUserAsRoot = catchAsync(async (req, res, next) => {
 });
 
 export const createUserAsRoot = catchAsync(async (req, res, next) => {
-  const { username, password, name, phone, email, image } = req.body;
+  const { username, password, name, phone, email, image, role } = req.body;
   const data = { username, password, name, phone, email, image };
 
-  const isRoot = req.user.role === 'root';
+  const requesterRole = req.user.role;
 
-  if (isRoot) {
-    if (req.body.role === 'root') {
-      return next(new AppError('Você já é o usuário root', 400));
+  if (requesterRole === "root"){
+    if(role === 'root'){
+      return next(
+        new AppError('Não é permitido criar um segundo usuário root no sistema', 403)
+      )
     }
-
-    data.role = req.body.role;
+    data.role = role || 'journalist'
+  } else if (requesterRole === 'admin'){
+    if (role){
+      return next(
+        new AppError('Administradores não podem definir o cargo de novos usuários', 403)
+      )
+    }
+    data.role = 'journalist'
   }
 
   const newUser = await db.user.create({ data });
@@ -74,7 +82,7 @@ export const createUserAsRoot = catchAsync(async (req, res, next) => {
   resfc(res, 201, { user: newUser });
 });
 
-export const updateUserAsRoot = catchAsync(async (req, res, next) => {
+export const updateUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
 
   const targetUser = await db.user.findUnique({ where: { username } });

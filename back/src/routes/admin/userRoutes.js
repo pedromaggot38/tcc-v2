@@ -1,18 +1,14 @@
 import express from 'express';
 
-import {
-  protect,
-  restrictTo,
-  updateMyPassword,
-} from '../../controllers/admin/authController.js';
+import { updateMyPassword } from '../../controllers/admin/authController.js';
 import {
   createUserAsRoot,
   deleteUserAsRoot,
   eligibleForRootTransfer,
-  getAllUsersAsRoot,
-  getUserAsRoot,
+  getAllUsers,
+  getUser,
   transferRootRole,
-  updateUserAsRoot,
+  updateUser,
   updateUserPasswordAsRoot,
 } from '../../controllers/admin/rootController.js';
 import {
@@ -24,47 +20,55 @@ import validate from '../../middlewares/validate.js';
 import {
   createUserAsRootZodSchema,
   updateMyPasswordZodSchema,
-  updateUserAsRootZodSchema,
   updateUserPasswordAsRootZodSchema,
   updateMeZodSchema,
+  updateUserZodSchema,
 } from '../../models/userZodSchema.js';
-
-const adminOrRoot = [protect, restrictTo('admin', 'root')];
-const rootOnly = [protect, restrictTo('root')];
+import {
+  adminOrRoot,
+  authenticatedUser,
+  checkUserHierarchy,
+  rootOnly,
+} from '../../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/', adminOrRoot, getAllUsersAsRoot);
+router.get('/', ...adminOrRoot, getAllUsers);
 router.post(
   '/',
-  adminOrRoot,
+  ...adminOrRoot,
   validate(createUserAsRootZodSchema),
   createUserAsRoot,
 );
-router.get('/eligible-for-root', rootOnly, eligibleForRootTransfer);
-router.post('/transfer-root', rootOnly, transferRootRole);
+router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
+router.post('/transfer-root', ...rootOnly, transferRootRole);
 
 router
   .route('/me')
-  .get(protect, getMe)
-  .patch(protect, validate(updateMeZodSchema), updateMe)
-  .delete(protect, deactivateMyAccount);
+  .get(...authenticatedUser, getMe)
+  .patch(...authenticatedUser, validate(updateMeZodSchema), updateMe)
+  .delete(...authenticatedUser, deactivateMyAccount);
 
 router.patch(
   '/me/password',
-  protect,
+  ...authenticatedUser,
   validate(updateMyPasswordZodSchema),
   updateMyPassword,
 );
 
 router
   .route('/:username')
-  .get(adminOrRoot, getUserAsRoot)
-  .patch(adminOrRoot, validate(updateUserAsRootZodSchema), updateUserAsRoot);
+  .get(...adminOrRoot, getUser)
+  .patch(
+    ...adminOrRoot,
+    checkUserHierarchy,
+    validate(updateUserZodSchema),
+    updateUser,
+  );
 
 router.patch(
   '/:username/password',
-  rootOnly,
+  ...rootOnly,
   validate(updateUserPasswordAsRootZodSchema),
   updateUserPasswordAsRoot,
 );
