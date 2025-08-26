@@ -45,17 +45,16 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   const user = await db.user.findUnique({
-    where: { username },
+    where: { username, active: true },
     select: {
       id: true,
-      active: true,
       username: true,
       password: true,
     },
   });
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return next(new AppError('Nome de usuário ou senha incorreta', 403));
+    return next(new AppError('Credenciais inválidas', 403));
   }
 
   if (user.active === false) {
