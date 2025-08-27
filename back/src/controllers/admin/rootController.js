@@ -18,33 +18,45 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
   const validSortFields = ['createdAt', 'username', 'active'];
 
-  const { skip, limit, orderBy, filters } = parseQueryParams(
+  const { skip, limit, orderBy, filters, page } = parseQueryParams(
     req.query,
     validFilterFields,
     validSortFields,
   );
 
-  const users = await db.user.findMany({
-    where: { ...filters },
-    skip,
-    take: limit,
-    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      phone: true,
-      email: true,
-      image: true,
-      role: true,
-      active: true,
-      createdAt: true,
-      updatedAt: true,
-      password: false,
+  const [totalItems, users] = await db.$transaction([
+    db.user.count({ where: { ...filters } }),
+    db.user.findMany({
+      where: { ...filters },
+      skip,
+      take: limit,
+      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        phone: true,
+        email: true,
+        image: true,
+        role: true,
+        active: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  resfc(res, 200, {
+    users,
+    pagination: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
     },
   });
-
-  resfc(res, 200, { users }, null, users.length);
 });
 
 export const getUser = catchAsync(async (req, res, next) => {
