@@ -124,8 +124,6 @@ export const updateUserPasswordAsRoot = catchAsync(async (req, res, next) => {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const result = updateUserPasswordAsRootZodSchema.safeParse(req.body);
-
   if (!result.success) {
     return next(new AppError(result.error.errors[0].message, 400));
   }

@@ -51,6 +51,10 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
 export const getArticle = catchAsync(async (req, res, next) => {
   const id = convertId(req.params.id);
 
+  if (!id) {
+    return next(new AppError('O parâmetro id é obrigatório', 400));
+  }
+
   const article = await db.article.findUnique({
     where: { id },
     include: {
