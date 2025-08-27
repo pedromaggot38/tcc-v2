@@ -24,17 +24,11 @@ app.use(
   }),
 );
 
-app.use(helmet());
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
-    },
-  }),
-);
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet());
+} else {
+  app.use(helmet({ contentSecurityPolicy: false }));
+}
 
 const limiter = rateLimit({
   max: 100,

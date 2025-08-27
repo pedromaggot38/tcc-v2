@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createDoctor,
+  deleteDoctor,
   getAllDoctors,
   getDoctor,
   toggleVisibilityDoctor,
@@ -8,7 +9,10 @@ import {
 } from '../../controllers/admin/doctorController.js';
 import validate from '../../middlewares/validate.js';
 import { adminOrRoot } from '../../middlewares/auth.js';
-import { createDoctorZodSchema } from '../../models/doctorZodSchema.js';
+import {
+  createDoctorZodSchema,
+  updateDoctorZodSchema,
+} from '../../models/doctorZodSchema.js';
 
 const router = express.Router();
 
@@ -20,8 +24,8 @@ router
 router
   .route('/:id')
   .get(...adminOrRoot, getDoctor)
-  .post(...adminOrRoot, updateDoctor)
-  .delete(...adminOrRoot, updateDoctor);
+  .patch(...adminOrRoot, validate(updateDoctorZodSchema), updateDoctor)
+  .delete(...adminOrRoot, deleteDoctor);
 
 router.route('/:id/visibility').patch(...adminOrRoot, toggleVisibilityDoctor);
 

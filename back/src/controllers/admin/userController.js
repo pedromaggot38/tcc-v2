@@ -2,6 +2,10 @@ import catchAsync from '../../utils/catchAsync.js';
 import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
 import AppError from '../../utils/appError.js';
+import {
+  checkUniqueness,
+  validateEmailRemoval,
+} from '../../utils/controllers/userUtils.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
@@ -26,19 +30,17 @@ export const getMe = catchAsync(async (req, res, next) => {
 
 export const updateMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
+  const { email, ...data } = req.body;
+
+  validateEmailRemoval(req.body, email);
 
   const user = await db.user.findUnique({ where: { id } });
   if (!user) {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const { email, ...data } = req.body;
-
   if (email && email !== user.email) {
-    const existingEmail = await db.user.findUnique({ where: { email } });
-    if (existingEmail) {
-      return next(new AppError('E-mail já está em uso', 400));
-    }
+    await checkUniqueness({ email }, id);
     data.email = email;
   }
 

@@ -71,13 +71,41 @@ export const getDoctor = catchAsync(async (req, res, next) => {
   });
 
   if (!doctor) {
-    return next(new AppError('Nenhum médico encontrado'));
+    return next(new AppError('Médico não encontrado'));
   }
 
   resfc(res, 200, { doctor });
 });
 
-export const updateDoctor = catchAsync(async (req, res, next) => {});
+export const updateDoctor = catchAsync(async (req, res, next) => {
+  const id = convertId(req.params.id);
+  const { schedules, ...doctorData } = req.body;
+
+  const doctor = await db.doctor.findUnique({ where: { id } });
+  if (!doctor) {
+    return next(new AppError('Médico não encontrado', 404));
+  }
+
+  const updatedDoctor = await db.$transaction(async (tx) => {
+    const updated = await tx.doctor.update({
+      where: { id },
+      data: {
+        ...doctorData,
+        updatedBy: req.user.id,
+      },
+    });
+
+    if (schedules && schedules.length > 0) {
+      await tx.schedule.deleteMany({ where: { doctorId: id } });
+      await tx.schedule.createMany({
+        data: schedules.map((schedule) => ({ ...schedule, doctorId: id })),
+      });
+    }
+    return updated;
+  });
+
+  resfc(res, 200, { doctor: updatedDoctor }, 'Médico atualizado com sucesso.');
+});
 
 export const toggleVisibilityDoctor = catchAsync(async (req, res, next) => {
   const id = convertId(req.params.id);
@@ -123,7 +151,7 @@ export const deleteDoctor = catchAsync(async (req, res, next) => {
   const doctor = await db.doctor.findUnique({ where: { id } });
 
   if (!doctor) {
-    return next(new AppError('Nenhum médico encontrado'));
+    return next(new AppError('Médico não encontrado'));
   }
 
   await db.doctor.delete({ where: { id } });

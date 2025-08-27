@@ -7,7 +7,11 @@ import {
   updateUserPasswordAsRootZodSchema,
 } from '../../models/userZodSchema.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
-import { comparePassword } from '../../utils/controllers/userUtils.js';
+import {
+  checkUniqueness,
+  comparePassword,
+  validateEmailRemoval,
+} from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
@@ -57,6 +61,9 @@ export const getUser = catchAsync(async (req, res, next) => {
 
 export const createUser = catchAsync(async (req, res, next) => {
   const { username, password, name, phone, email, image, role } = req.body;
+
+  await checkUniqueness({ username, email });
+
   const data = { username, password, name, phone, email, image };
 
   const requesterRole = req.user.role;
@@ -82,20 +89,17 @@ export const createUser = catchAsync(async (req, res, next) => {
 
 export const updateUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
+  const { email, role, ...data } = req.body;
+
+  validateEmailRemoval(req.body, email);
 
   const targetUser = await db.user.findUnique({ where: { username } });
-
   if (!targetUser) {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const { email, role, ...data } = req.body;
-
   if (email && email !== targetUser.email) {
-    const existingEmail = await db.user.findUnique({ where: { email } });
-    if (existingEmail) {
-      return next(new AppError('E-mail já está em uso', 400));
-    }
+    await checkUniqueness({ email }, targetUser.id);
     data.email = email;
   }
 

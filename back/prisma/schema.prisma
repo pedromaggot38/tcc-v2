@@ -14,7 +14,7 @@ model User {
   password             String
   name                 String
   email                String    @unique
-  phone                String?   @unique
+  phone                String?
   image                String?
   role                 UserRole  @default(journalist)
   active               Boolean   @default(true)
@@ -60,8 +60,8 @@ model Doctor {
   specialty     String
   state         String
   crm           String
-  phone         String?    @unique
-  email         String?    @unique
+  phone         String?
+  email         String?
   visible       Boolean    @default(true)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt

@@ -10,7 +10,7 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
   const validFilterFields = ['title', 'author', 'status'];
   const validSortFields = ['createdAt', 'title', 'status'];
 
-  const { skip, limit, orderBy, filters } = parseQueryParams(
+  const { skip, limit, orderBy, filters, page } = parseQueryParams(
     req.query,
     validFilterFields,
     validSortFields,

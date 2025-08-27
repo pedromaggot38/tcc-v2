@@ -35,7 +35,7 @@ export const createDoctorZodSchema = z.object({
     ],
     { errorMap: () => ({ message: 'Estado inválido' }) },
   ),
-  crm: z.string().min(1, 'CRM é obrigatório').max(6),
+  crm: z.string().min(1, 'CRM é obrigatório').max(8),
   phone: z
     .string()
     .optional()
@@ -44,25 +44,25 @@ export const createDoctorZodSchema = z.object({
       message: 'O telefone deve conter apenas números e no máximo 10 dígitos',
     }),
   email: z.string().email('E-mail inválido').optional(),
-  schedules: z
-    .array(
-      z.object({
-        dayOfWeek: z.enum([
-          'segunda',
-          'terca',
-          'quarta',
-          'quinta',
-          'sexta',
-          'sabado',
-          'domingo',
-        ]),
-        startTime: z
-          .string()
-          .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, 'Formato inválido (HH:mm)'),
-        endTime: z
-          .string()
-          .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, 'Formato inválido (HH:mm)'),
-      }),
-    )
-    .min(1, 'Pelo menos um horário deve ser informado'),
+  schedules: z.array(
+    z.object({
+      dayOfWeek: z.enum([
+        'segunda',
+        'terca',
+        'quarta',
+        'quinta',
+        'sexta',
+        'sabado',
+        'domingo',
+      ]),
+      startTime: z
+        .string()
+        .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, 'Formato inválido (HH:mm)'),
+      endTime: z
+        .string()
+        .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, 'Formato inválido (HH:mm)'),
+    }),
+  ),
 });
+
+export const updateDoctorZodSchema = createDoctorZodSchema.partial();
