@@ -57,15 +57,6 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Credenciais inválidas', 403));
   }
 
-  if (user.active === false) {
-    return next(
-      new AppError(
-        'Conta desativada. Entre em contato com um administrador',
-        404,
-      ),
-    );
-  }
-
   createSendToken(user, 200, res);
 });
 
@@ -74,24 +65,16 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   const user = await db.user.findUnique({
     where: { username },
   });
+
   if (!user) {
-    next(new AppError('Usuário não encontrado', 404));
+    return next(new AppError('Usuário não encontrado', 404));
   }
 
   const { token, hashedToken, expires } = await createPasswordResetToken(
     user.id,
   );
 
-  await db.user.update({
-    where: { id: user.id },
-    data: {
-      passwordResetToken: hashedToken,
-      passwordResetExpires: expires,
-    },
-  });
-
   const resetURL = `${req.protocol}://${req.get('host')}/api/v0/auth/resetPassword/${token}`;
-
   const message = `Esqueceu sua senha? Entre neste link para criar uma nova senha: ${resetURL}`;
 
   try {
@@ -147,7 +130,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError('Token is invalid or has expired', 400));
+    return next(new AppError('O token é inválido ou já expirou', 400));
   }
 
   const updatedUser = await db.user.update({
@@ -175,7 +158,7 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
     },
   });
   if (!user) {
-    next(new AppError('Usuário não encontrado', 404));
+    return next(new AppError('Usuário não encontrado', 404));
   }
 
   const { currentPassword, password } = req.body;
@@ -195,10 +178,16 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
 });
 
 export const logout = catchAsync(async (req, res, next) => {
-  res.cookie('jwt', '', {
-    expires: new Date(Date.now(0)),
+  const cookieOptions = {
     httpOnly: true,
-  });
+    path: '/api/v0/admin',
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.clearCookie('jwt', cookieOptions);
 
   return resfc(res, 200, null, 'Logout realizado com sucesso.');
 });
