@@ -181,6 +181,7 @@ export const logout = catchAsync(async (req, res, next) => {
   const cookieOptions = {
     httpOnly: true,
     path: '/api/v0/admin',
+    sameSite: 'Strict',
   };
 
   if (process.env.NODE_ENV === 'production') {

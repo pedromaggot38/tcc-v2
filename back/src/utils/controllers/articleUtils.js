@@ -38,7 +38,7 @@ const sanitizeOptions = {
   allowedAttributes: {
     a: ['href', 'name', 'target'],
     img: ['src', 'alt', 'title', 'width', 'height'],
-    span: ['style'],
+    // span: ['style'],
   },
 };
 

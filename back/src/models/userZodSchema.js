@@ -64,6 +64,7 @@ export const createRootZodSchema = z
       })
       .optional(),
   })
+  .strict()
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
@@ -101,18 +102,21 @@ export const createUserZodSchema = z
       })
       .optional(),
   })
+  .strict()
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
   });
 
-export const updateMeZodSchema = z.object(userProfileSchema);
+export const updateMeZodSchema = z.object(userProfileSchema).strict();
 
-export const updateUserZodSchema = z.object({
-  ...userProfileSchema,
-  role: z.enum(['root', 'admin', 'journalist']).optional(),
-  active: z.boolean().optional(),
-});
+export const updateUserZodSchema = z
+  .object({
+    ...userProfileSchema,
+    role: z.enum(['root', 'admin', 'journalist']).optional(),
+    active: z.boolean().optional(),
+  })
+  .strict();
 
 export const updateMyPasswordZodSchema = z
   .object({
@@ -122,6 +126,7 @@ export const updateMyPasswordZodSchema = z
       .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
     currentPassword: z.string().min(1, 'A senha atual é obrigatória'),
   })
+  .strict()
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'As senhas não coincidem',
     path: ['passwordConfirm'],
@@ -134,6 +139,7 @@ export const updateUserPasswordAsRootZodSchema = z
       .string()
       .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
   })
+  .strict()
   .refine((data) => data.password === data.passwordConfirm, {
     path: ['passwordConfirm'],
     message: 'As senhas não coincidem',
