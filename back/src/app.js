@@ -4,6 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import path from 'path';
 import cors from 'cors';
+import hpp from 'hpp';
 
 import globalErrorHandler from './controllers/admin/errorController.js';
 import publicArticleRouter from './routes/public/articleRoutes.js';
@@ -29,6 +30,8 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   app.use(helmet({ contentSecurityPolicy: false }));
 }
+
+app.use(hpp());
 
 const limiter = rateLimit({
   max: 100,

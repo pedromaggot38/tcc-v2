@@ -133,7 +133,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError('O token é inválido ou já expirou', 400));
   }
 
-  const updatedUser = await db.user.update({
+  await db.user.update({
     where: { id: user.id },
     data: {
       password,
@@ -142,8 +142,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
       passwordResetExpires: null,
     },
   });
-
-  resfc(res, 200, { user: updatedUser });
+  resfc(res, 200, null, 'Senha redefinida com sucesso.');
 });
 
 export const updateMyPassword = catchAsync(async (req, res, next) => {

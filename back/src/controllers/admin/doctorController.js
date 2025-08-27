@@ -81,13 +81,8 @@ export const updateDoctor = catchAsync(async (req, res, next) => {
   const id = convertId(req.params.id);
   const { schedules, ...doctorData } = req.body;
 
-  const doctor = await db.doctor.findUnique({ where: { id } });
-  if (!doctor) {
-    return next(new AppError('Médico não encontrado', 404));
-  }
-
   const updatedDoctor = await db.$transaction(async (tx) => {
-    const updated = await tx.doctor.update({
+    await tx.doctor.update({
       where: { id },
       data: {
         ...doctorData,
@@ -101,7 +96,11 @@ export const updateDoctor = catchAsync(async (req, res, next) => {
         data: schedules.map((schedule) => ({ ...schedule, doctorId: id })),
       });
     }
-    return updated;
+
+    return tx.doctor.findUnique({
+      where: { id },
+      include: { schedules: true },
+    });
   });
 
   resfc(res, 200, { doctor: updatedDoctor }, 'Médico atualizado com sucesso.');
