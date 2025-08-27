@@ -27,11 +27,10 @@ const userProfileSchema = {
     }),
   image: z
     .string()
-    .transform((val) => (val === '' ? null : val))
-    .refine((val) => val === null || /^https?:\/\/.+\..+/.test(val), {
-      message: 'URL da imagem inválida',
-    })
-    .optional(),
+    .url({ message: 'O formato da URL da imagem é inválido' })
+    .or(z.literal(''))
+    .optional()
+    .transform((val) => (val === '' ? null : val)),
 };
 
 export const createRootZodSchema = z

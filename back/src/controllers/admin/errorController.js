@@ -2,7 +2,7 @@ import { ZodError } from 'zod';
 import AppError from '../../utils/appError.js';
 
 const handlePrismaDuplicateFieldError = (err) => {
-  const field = err.meta?.target?.[0] || 'Campo';
+  const field = (err.meta?.target && err.meta.target[0]) || 'Campo';
   return new AppError(`${field} já está em uso.`, 400);
 };
 const handlePrismaEnumError = (err) => {

@@ -16,6 +16,7 @@ export const createSendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
     path: '/api/v0/admin',
+    sameSite: 'Strict',
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
