@@ -9,36 +9,41 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
   const validFilterFields = ['name', 'specialty', 'crm'];
   const validSortFields = ['createdAt', 'name', 'active'];
 
-  const { skip, limit, orderBy, filters } = parseQueryParams(
+  const { skip, limit, orderBy, filters, page } = parseQueryParams(
     req.query,
     validFilterFields,
     validSortFields,
   );
 
-  const doctors = await db.doctor.findMany({
-    where: { ...filters },
-    skip,
-    take: limit,
-    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-    include: {
-      createdByUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
+  const [totalItems, doctors] = await db.$transaction([
+    db.doctor.count({ where: { ...filters } }),
+    db.doctor.findMany({
+      where: { ...filters },
+      skip,
+      take: limit,
+      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
+      include: {
+        createdByUser: {
+          select: { id: true, username: true, name: true },
+        },
+        schedules: {
+          select: { dayOfWeek: true, startTime: true, endTime: true },
         },
       },
-      schedules: {
-        select: {
-          dayOfWeek: true,
-          startTime: true,
-          endTime: true,
-        },
-      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  resfc(res, 200, {
+    doctors,
+    pagination: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
     },
   });
-
-  resfc(res, 200, { doctors }, null, doctors.length);
 });
 
 export const createDoctor = catchAsync(async (req, res, next) => {
