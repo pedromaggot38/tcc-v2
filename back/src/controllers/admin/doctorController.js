@@ -76,6 +76,7 @@ export const getDoctor = catchAsync(async (req, res, next) => {
 
   resfc(res, 200, { doctor });
 });
+
 export const updateDoctor = catchAsync(async (req, res, next) => {});
 
 export const toggleVisibilityDoctor = catchAsync(async (req, res, next) => {

@@ -16,25 +16,36 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
     validSortFields,
   );
 
-  const articles = await db.article.findMany({
-    where: {
-      ...filters,
-    },
-    skip,
-    take: limit,
-    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-    include: {
-      createdByUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
+  const [totalArticles, articles] = await Promise.all([
+    db.article.count({ where: filters }),
+    db.article.findMany({
+      where: filters,
+      skip,
+      take: limit,
+      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
+      include: {
+        createdByUser: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
         },
       },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalArticles / limit);
+
+  resfc(res, 200, {
+    articles,
+    pagination: {
+      totalItems: totalArticles,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
     },
   });
-
-  resfc(res, 200, { articles }, null, articles.length);
 });
 
 export const getArticle = catchAsync(async (req, res, next) => {
