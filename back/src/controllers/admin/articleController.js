@@ -4,6 +4,7 @@ import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
 import convertId from '../../utils/convertId.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
+import { sanitizeArticleContent } from '../../utils/controllers/articleUtils.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const validFilterFields = ['title', 'author', 'status'];
@@ -60,6 +61,10 @@ export const getArticle = catchAsync(async (req, res, next) => {
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
+  if (req.body.content) {
+    req.body.content = sanitizeArticleContent(req.body.content);
+  }
+
   const data = { ...req.body, createdBy: req.user.id };
 
   const newArticle = await db.article.create({ data });
@@ -76,6 +81,10 @@ export const updateArticle = catchAsync(async (req, res, next) => {
 
   if (!article) {
     return next(new AppError('Notícia não encontrada', 404));
+  }
+
+  if (req.body.content) {
+    req.body.content = sanitizeArticleContent(req.body.content);
   }
 
   const data = { ...req.body, updatedBy: req.user.id };
@@ -97,7 +106,7 @@ export const togglePublishArticle = catchAsync(async (req, res, next) => {
     return next(new AppError('Notícia não encontrada', 404));
   }
 
-  let newStatus = 'published' | 'draft';
+  let newStatus;
 
   switch (article.status) {
     case 'published':
@@ -134,7 +143,7 @@ export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
     return next(new AppError('Notícia não encontrada', 404));
   }
 
-  let newStatus = 'draft' | 'archived';
+  let newStatus;
 
   switch (article.status) {
     case 'draft':
