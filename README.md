@@ -1,66 +1,75 @@
-# Refatoração do Projeto - Sistema de Notícias e Gestão de Médicos
+# Refatoração do Projeto - Sistema de Notícias e Gestão de Médicos para o Hospital de Maracaí
 
-Este repositório contém a refatoração de um projeto anterior, com foco na criação de um **sistema informativo** sobre o **Hospital de Maracaí**, localizado em São Paulo. O sistema é dividido em duas áreas principais: o **site público** e o **dashboard de administração**. O back-end é feito em **Node.js** com **Express**, utilizando **Prisma** para manipulação de banco de dados e **JSON Web Tokens (JWT)** para autenticação.
+Este repositório contém a refatoração de um projeto focado na criação de um **sistema informativo** para o **Hospital de Maracaí**, localizado em São Paulo. O sistema é dividido em duas áreas principais: o **site público** e o **dashboard de administração**.
+
+O back-end é construído em **Node.js** com **Express**, utilizando **Prisma** como ORM para manipulação do banco de dados PostgreSQL e **JSON Web Tokens (JWT)** para um sistema de autenticação robusto e seguro.
 
 ## Estrutura do Projeto
 
 O projeto é dividido em duas seções principais:
 
-1. **Back-End**:
-   - Construído com **Node.js** e **Express**.
-   - **Prisma** é utilizado como ORM para interação com o banco de dados.
-   - **JWT (JSON Web Token)** é usado para autenticação e controle de sessões de usuários.
-   - A autenticação será feita manualmente com JWT.
-2. **Front-End**:
-   - Dividido entre duas áreas:
-     - **Dashboard de Administração**: Onde os usuários com roles (funções) de `admin` e `root` poderão criar e editar notícias, bem como adicionar e gerenciar informações de médicos.
-     - **Site Público**:
-       - Exibe as **notícias** dinâmicas relacionadas ao hospital.
-       - Exibe a **informação sobre os médicos** e seus horários de trabalho, com base nos dados armazenados no banco.
-       - **Informações sobre o Hospital de Maracaí**:
-       - Apresenta detalhes como:
-         - **História** do hospital.
-         - **Localização e endereço** completo.
-         - **Contatos** (telefones, e-mails).
-         - **Fotos do hospital**.
-         - Qualquer outra informação relevante sobre a instituição.
+1.  **Back-End**:
+
+    - Construído com **Node.js** e **Express**.
+    - **Prisma** é utilizado como ORM para interação com o banco de dados PostgreSQL.
+    - **JWT (JSON Web Token)** é usado para autenticação e controle de sessões de usuários.
+    - A autenticação é implementada manualmente com JWT, incluindo funcionalidades como expiração de token e cookies seguros (`httpOnly`).
+
+2.  **Front-End**:
+    - **Dashboard de Administração**: Área restrita onde usuários com as funções `admin` e `root` podem gerenciar notícias, médicos e outros usuários do sistema.
+    - **Site Público**: Exibe notícias publicadas, informações sobre os médicos e seus horários de atendimento, além de detalhes institucionais do hospital (história, localização, contatos, etc.).
 
 ## Funcionalidades
 
 ### Back-End
 
-- **Criação de Usuários**:
-  - O sistema possui diferentes **roles (funções)**: `journalist`, `admin`, `root`.
-  - Cada role tem permissões diferentes para criação e edição de conteúdos no sistema.
-- **Autenticação**:
-  - O sistema implementa autenticação via **JWT** (JSON Web Token), onde os tokens serão gerados manualmente e utilizados para autenticar as requisições.
-- **Gerenciamento de Notícias**:
-  - Os usuários podem criar, editar e excluir notícias para o site informativo.
-  - As notícias serão dinâmicas, permitindo que sejam publicadas ou ocultadas conforme necessário.
-- **Gerenciamento de Médicos**:
-  - É possível cadastrar médicos, incluindo seus dados, como **nome, especialidade, CRM, e horários de trabalho**.
-  - Os horários são configurados de acordo com os **dias da semana** e o horário de atendimento.
+- **Gerenciamento de Usuários com Níveis de Acesso**:
 
-### Front-End
+  - O sistema possui três **funções (roles)**: `journalist`, `admin` e `root`.
+  - `root`: Controle total do sistema, incluindo a capacidade de transferir sua função para outro administrador.
+  - `admin`: Pode gerenciar notícias, médicos e usuários com a função `journalist`.
+  - `journalist`: Pode criar e gerenciar notícias.
 
-- **Dashboard de Administração**:
-  - Área restrita para administração, onde os usuários com permissões adequadas podem **gerenciar usuários**, **notícias**, e **médicos**.
-- **Site Público**:
-  - Exibe as **notícias** dinâmicas relacionadas ao hospital.
-  - Exibe a **informação sobre os médicos** e seus horários de trabalho, com base nos dados armazenados no banco de dados.
+- **Autenticação Segura**:
+
+  - Sistema de login com JWT, incluindo a criação do primeiro usuário `root` se não existir nenhum.
+  - Funcionalidades de "Esqueci minha senha" com envio de e-mail (via Brevo) e redefinição de senha com token seguro.
+  - Validação de hierarquia para impedir que administradores editem outros administradores ou o `root`.
+
+- **Gerenciamento de Notícias (Articles)**:
+
+  - Criação, leitura, atualização e exclusão (CRUD) de notícias.
+  - As notícias possuem status (`published`, `draft`, `archived`) que controlam sua visibilidade.
+  - Geração automática de `slugs` únicos para URLs amigáveis.
+  - Sanitização do conteúdo HTML das notícias para evitar ataques XSS.
+
+- **Gerenciamento de Médicos (Doctors)**:
+
+  - CRUD completo para informações de médicos, incluindo nome, especialidade, CRM, estado e contatos.
+  - Gerenciamento de horários de atendimento (`schedules`) por dia da semana.
+  - Controle de visibilidade para exibir ou ocultar médicos no site público.
+
+- **Validação e Segurança**:
+  - Validação de dados de entrada usando **Zod** para garantir a integridade dos dados.
+  - Middlewares para tratamento de erros, CORS, limitação de requisições (`rate-limit`) e proteção contra ataques como HPP (HTTP Parameter Pollution).
 
 ## Tecnologias Utilizadas
 
 - **Back-End**:
+
   - **Node.js** com **Express** para o servidor.
-  - **Prisma** para interagir com o banco de dados PostgreSQL.
+  - **Prisma** como ORM para interagir com o banco de dados PostgreSQL.
   - **JWT (JSON Web Token)** para autenticação de usuários.
+  - **Zod** para validação de esquemas de dados.
+  - **Bcrypt.js** para hashing de senhas.
+  - **Brevo (anteriormente Sendinblue)** para envio de e-mails transacionais.
+
 - **Banco de Dados**:
+
   - **PostgreSQL** para armazenamento de dados.
+
 - **Containerização**:
-  - **Docker** e **Docker Compose** para ambiente de desenvolvimento e produção.
-- **Front-End**:
-  - (Descreva aqui as tecnologias do front-end que está usando, como React, Next.js, etc. Caso queira trabalhar somente com o back-end por enquanto, pode pular essa parte.)
+  - **Docker** e **Docker Compose** para criar ambientes de desenvolvimento e produção consistentes e isolados.
 
 ## Como Rodar o Projeto
 
@@ -69,120 +78,70 @@ O projeto é dividido em duas seções principais:
 Certifique-se de ter os seguintes requisitos instalados:
 
 - **Docker**: [Baixar Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- **Docker Compose**: Geralmente vem junto com o Docker Desktop
-- **Node.js**: [Baixar Node.js](https://nodejs.org) (opcional, apenas para desenvolvimento local)
+- **Docker Compose**: Geralmente vem junto com o Docker Desktop.
 
 ### 🐳 **Opção 1: Desenvolvimento com Docker (Recomendado)**
 
 #### **Configuração Inicial:**
 
-1. **Clone o repositório**:
-```bash
-git clone https://github.com/pedromaggot38/tcc-v2.git
-cd tcc-v2
-```
+1.  **Clone o repositório**:
 
-2. **Configure as variáveis de ambiente**:
-```bash
-# Copie o arquivo de exemplo
-cp back/env.example ./.env
+    ```bash
+    git clone [https://github.com/pedromaggot38/tcc-v2.git](https://github.com/pedromaggot38/tcc-v2.git)
+    cd tcc-v2
+    ```
 
-# Edite o arquivo .env com suas configurações
-# IMPORTANTE: Nunca commite o arquivo .env no git!
-```
+2.  **Configure as variáveis de ambiente**:
 
-3. **Inicie o projeto**:
-```bash
-# Iniciar todos os serviços
-docker-compose up
+    ```bash
+    # Copie o arquivo de exemplo para a raiz do diretório 'tcc-v2-dev'
+    cp back/env.example ./.env
+    ```
 
-# Para rodar em background
-docker-compose up -d
+    Edite o arquivo `.env` com as configurações do banco de dados, JWT e chaves da API Brevo.
 
-# Para reconstruir após mudanças
-docker-compose up --build
-```
+3.  **Inicie o projeto**:
 
-4. **Acesse a aplicação**:
-- **Backend**: http://localhost:3000
-- **Banco PostgreSQL**: localhost:5432
+    ```bash
+    # Iniciar todos os serviços em modo de desenvolvimento (com hot-reload)
+    docker compose up
+
+    # Para rodar em background
+    docker compose up -d
+
+    # Para reconstruir as imagens após mudanças nos Dockerfiles
+    docker compose up --build
+    ```
+
+4.  **Acesse a aplicação**:
+    - **Backend**: `http://localhost:3000`
+    - **Banco PostgreSQL**: `localhost:5432`
+    - **Prisma Studio**: `http://localhost:5555` (disponível no ambiente de desenvolvimento)
 
 #### **Comandos úteis durante o desenvolvimento**:
 
 ```bash
-# Parar o projeto
-docker-compose down
+# Parar os containers
+docker compose down
 
-# Ver logs em tempo real
-docker-compose up -f
-
-# Ver logs de um serviço específico
-docker-compose logs back
-docker-compose logs db
-
-# Reiniciar apenas o backend
-docker-compose restart back
-
-# Executar comandos dentro do container
-docker-compose exec back npx prisma studio
-docker-compose exec back npx prisma migrate dev
-docker-compose exec back npm run start
-
-# Acessar o container interativamente
-docker-compose exec back sh
-```
-
-### 💻 **Opção 2: Desenvolvimento Local (Sem Docker)**
-
-#### **Configuração do Banco de Dados**:
-
-1. **Instale o PostgreSQL** em sua máquina
-2. **Crie um banco de dados** chamado `hospitaldb`
-
-#### **Configuração da Aplicação**:
-
-1. **Entre na pasta back**:
-```bash
-cd back
-```
-
-2. **Instale as dependências**:
-```bash
-npm install
-```
-
-3. **Configure as variáveis de ambiente**:
-```bash
-# Copie o arquivo de exemplo
-cp env.example .env
-
-# Edite o arquivo .env com suas configurações
-```
-
-4. **Execute as migrações**:
-```bash
-npx prisma migrate dev
-```
-
-5. **Inicie o servidor**:
-```bash
-npm start
+# Executar comandos dentro do container do back-end
+docker compose exec back npx prisma studio
+docker compose exec back npx prisma migrate dev
 ```
 
 ### 📋 **Configuração das Variáveis de Ambiente**
 
-Crie um arquivo `.env` na pasta `back/` com as seguintes variáveis:
+Crie um arquivo `.env` na pasta raiz (`tcc-v2-dev`) com as seguintes variáveis, ajustando os valores conforme necessário:
 
 ```env
 # Configurações do Banco de Dados
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hospitaldb?schema=public"
-
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=hospitaldb
+DATABASE_URL="postgresql://postgres:postgres@db:5432/hospitaldb?schema=public"
 
 # Configurações JWT
-JWT_SECRET="sua_chave_secreta_muito_segura_aqui"
+JWT_SECRET="change_me_super_secret"
 JWT_EXPIRES_IN="90d"
 JWT_COOKIE_EXPIRES_IN=90
 
@@ -190,70 +149,21 @@ JWT_COOKIE_EXPIRES_IN=90
 PORT=3000
 NODE_ENV=development
 
-# Configurações de Email (Mailtrap)
-MAILTRAP_TOKEN="seu_token_mailtrap"
-MAILTRAP_INBOX_ID="seu_inbox_id"
-
-# Configurações de Segurança
-BCRYPT_SALT_ROUNDS=12
+# Brevo Email Sender (para recuperação de senha)
+BREVO_API_KEY="sua_chave_de_api_da_brevo"
+BREVO_SENDER_EMAIL="seu_email_verificado_na_brevo@exemplo.com"
 ```
 
 **⚠️ IMPORTANTE:**
-- **NUNCA** commite o arquivo `.env` no git
-- Altere as senhas e chaves secretas para valores seguros
-- Para produção, use variáveis de ambiente do servidor
+
+- **NUNCA** adicione o arquivo `.env` ao controle de versão (Git). Ele já está incluído no `.gitignore`).
+- Altere as senhas e chaves secretas para valores seguros, especialmente em produção.
 
 ## Estrutura de Banco de Dados
 
-O banco de dados está estruturado com as seguintes tabelas:
+O banco de dados, gerenciado pelo Prisma, está estruturado com as seguintes tabelas principais:
 
-- **User**: Tabela de usuários com informações como `username`, `password`, `role` (journalist, admin, root), entre outros.
-- **Article**: Tabela de notícias com informações como `title`, `subtitle`, `content`, `slug`, `author`, etc.
-- **Doctor**: Tabela de médicos com `name`, `specialty`, `crm`, `phone`, `email`, `visibility` e os horários de trabalho.
-- **Schedule**: Tabela para armazenar os horários de trabalho dos médicos, incluindo o **dia da semana** e **hora de início e fim**.
-
-## 🔧 **Troubleshooting**
-
-### **Problemas comuns do Docker**:
-
-1. **Porta já em uso**:
-   ```bash
-   # Verifique se algo está usando a porta 3000
-   netstat -ano | findstr :3000
-   # Ou pare o serviço que está usando a porta
-   ```
-
-2. **Container não inicia**:
-   ```bash
-   # Verifique os logs
-   docker-compose logs back
-   docker-compose logs db
-   ```
-
-3. **Banco não conecta**:
-   ```bash
-   # Aguarde alguns segundos para o PostgreSQL inicializar
-   # O script aguarda automaticamente a conexão
-   ```
-
-4. **Permissões de arquivo**:
-   ```bash
-   # No Windows, pode ser necessário executar como administrador
-   # No Linux/Mac, verifique as permissões dos arquivos
-   ```
-
-## 📚 **Recursos Adicionais**
-
-- **Prisma Studio**: `docker-compose exec back npx prisma studio`
-- **Documentação Prisma**: [https://www.prisma.io/docs](https://www.prisma.io/docs)
-- **Documentação Docker**: [https://docs.docker.com](https://docs.docker.com)
-
-## Notas Finais
-
-- Este projeto ainda está em processo de refatoração e pode sofrer alterações.
-- **Contribuições são bem-vindas**! Sinta-se à vontade para fazer melhorias, correções ou sugerir novas funcionalidades.
-- O ambiente Docker garante consistência entre diferentes máquinas de desenvolvimento.
-
-## Licença
-
-Este projeto é licenciado sob a [MIT License](LICENSE).
+- **User**: Armazena informações dos usuários, como `username`, `password` (hashed), `email`, `role` (`root`, `admin`, `journalist`) e status (`active`).
+- **Article**: Contém os dados das notícias, incluindo `title`, `content`, `slug`, `author`, `status` (`published`, `draft`, `archived`) e relacionamentos com o usuário que a criou e atualizou.
+- **Doctor**: Guarda informações dos médicos, como `name`, `specialty`, `crm`, `state`, e um campo `visible` para controlar sua exibição no site público.
+- **Schedule**: Tabela para armazenar os horários de trabalho dos médicos, relacionada à tabela `Doctor` e contendo `dayOfWeek`, `startTime` e `endTime`.
