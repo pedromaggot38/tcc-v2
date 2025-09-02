@@ -1,6 +1,9 @@
 import db from '../config/db.js';
 import AppError from '../utils/appError.js';
-import { comparePassword } from '../utils/controllers/userUtils.js';
+import {
+  comparePassword,
+  validateEmailRemoval,
+} from '../utils/controllers/userUtils.js';
 
 /**
  * Mascara um endereço de e-mail para exibição em logs.
@@ -52,13 +55,33 @@ export const checkUniqueness = async (fields, currentUserId = null) => {
   }
 };
 
+export const getMeService = async (userId) => {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      phone: true,
+      image: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new AppError('Usuário não encontrado', 404);
+  }
+  return user;
+};
+
 /**
  * Atualiza a senha de um usuário autenticado.
  * @param {string} userId - O ID do usuário que está alterando a própria senha.
  * @param {string} currentPassword - A senha atual para verificação.
  * @param {string} newPassword - A nova senha a ser definida.
  */
-export const updateMyUserPassword = async (
+export const updateMyUserPasswordService = async (
   userId,
   currentPassword,
   newPassword,
@@ -83,6 +106,52 @@ export const updateMyUserPassword = async (
     data: {
       password: newPassword,
       passwordChangedAt: new Date(),
+    },
+  });
+};
+
+export const updateMeService = async (userId, updateData) => {
+  const { email, ...data } = updateData;
+
+  validateEmailRemoval(updateData, email);
+
+  if (email) {
+    const currentUser = await db.user.findUnique({ where: { id: userId } });
+    if (!currentUser) {
+      throw new AppError('Usuário não encontrado', 404);
+    }
+    if (email !== currentUser.email) {
+      await checkUniqueness({ email }, userId);
+      data.email = email;
+    }
+  }
+
+  const updatedUser = await db.user.update({
+    where: { id: userId },
+    data,
+  });
+
+  return updatedUser;
+};
+
+export const deactivateMyAccountService = async (id) => {
+  const user = await db.user.findUnique({ where: { id } });
+
+  if (!user) {
+    throw new AppError('Usuário não encontrado', 404);
+  }
+
+  if (user.role === 'root') {
+    throw new AppError(
+      'Não é possível desativar sua conta enquanto você for root. Transfira para outro usuário antes de continuar',
+      404,
+    );
+  }
+
+  await db.user.update({
+    where: { id },
+    data: {
+      active: false,
     },
   });
 };

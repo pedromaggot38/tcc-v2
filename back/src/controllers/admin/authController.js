@@ -1,6 +1,9 @@
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
-import { createSendToken } from '../../utils/controllers/authUtils.js';
+import {
+  clearAuthCookie,
+  createSendToken,
+} from '../../utils/controllers/authUtils.js';
 import {
   handleForgotPassword,
   loginUser,
@@ -64,17 +67,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 });
 
 export const logout = catchAsync(async (req, res, next) => {
-  const cookieOptions = {
-    httpOnly: true,
-    path: '/api/v0/admin',
-    sameSite: 'Strict',
-  };
-
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
-
-  res.clearCookie('jwt', cookieOptions);
+  clearAuthCookie(res);
 
   return resfc(res, 200, null, 'Logout realizado com sucesso.');
 });

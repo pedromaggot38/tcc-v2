@@ -31,3 +31,21 @@ export const createSendToken = (user, statusCode, res) => {
 
   return resfc(res, statusCode, { user: safeUser, token });
 };
+
+/**
+ * Limpa o cookie de autenticação do cliente.
+ * @param {object} res - O objeto de resposta do Express.
+ */
+export const clearAuthCookie = (res) => {
+  const cookieOptions = {
+    httpOnly: true,
+    path: '/api/v0/admin',
+    sameSite: 'Strict',
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.clearCookie('jwt', cookieOptions);
+};
