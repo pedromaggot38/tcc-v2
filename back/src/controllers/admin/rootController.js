@@ -2,7 +2,6 @@ import db from '../../config/db.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
-import { createRootZodSchema } from '../../models/userZodSchema.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
 import {
   comparePassword,
@@ -11,6 +10,7 @@ import {
 import { parseQueryParams } from '../../utils/queryParser.js';
 import { checkUniqueness } from '../../services/userService.js';
 import { createRootUser, findRootUser } from '../../services/rootService.js';
+import { createRootZodSchema } from '../../models/userZodSchema.js';
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
@@ -206,7 +206,9 @@ export const checkRootExists = catchAsync(async (req, res, next) => {
 });
 
 export const handleRootCreation = catchAsync(async (req, res, next) => {
-  const newUser = await createRootUser(req.body);
+  const validatedData = createRootZodSchema.parse(req.body);
+
+  const newUser = await createRootUser(validatedData);
 
   return createSendToken(newUser, 201, res);
 });
