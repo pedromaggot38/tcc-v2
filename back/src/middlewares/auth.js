@@ -30,6 +30,7 @@ export const protect = catchAsync(async (req, res, next) => {
   let decoded;
   try {
     decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    // eslint-disable-next-line no-unused-vars
   } catch (err) {
     return next(
       new AppError(

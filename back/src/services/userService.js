@@ -58,7 +58,7 @@ export const checkUniqueness = async (fields, currentUserId = null) => {
  * @param {string} currentPassword - A senha atual para verificação.
  * @param {string} newPassword - A nova senha a ser definida.
  */
-export const updateUserPassword = async (
+export const updateMyUserPassword = async (
   userId,
   currentPassword,
   newPassword,

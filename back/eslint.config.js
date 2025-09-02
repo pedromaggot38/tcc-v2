@@ -10,10 +10,7 @@ export default defineConfig([
     plugins: { js },
     extends: ['js/recommended'],
     rules: {
-      'no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^(req|res|next|err|passwordConfirm)$' },
-      ],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^(req|res|next|err)$' }],
     },
   },
 

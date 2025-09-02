@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import db from '../config/db.js';
 import AppError from '../utils/appError.js';
 import { sendPasswordResetEmail } from './emailService.js';

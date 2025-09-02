@@ -5,7 +5,7 @@ import AppError from '../../utils/appError.js';
 import { validateEmailRemoval } from '../../utils/controllers/userUtils.js';
 import {
   checkUniqueness,
-  updateUserPassword,
+  updateMyUserPassword,
 } from '../../services/userService.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
@@ -57,7 +57,7 @@ export const updateMyPassword = catchAsync(async (req, res, next) => {
   const { currentPassword, password: newPassword } = req.body;
   const userId = req.user.id;
 
-  await updateUserPassword(userId, currentPassword, newPassword);
+  await updateMyUserPassword(userId, currentPassword, newPassword);
 
   resfc(res, 200, null, 'Senha alterada com sucesso');
 });

@@ -9,7 +9,11 @@ import {
 } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 import { checkUniqueness } from '../../services/userService.js';
-import { createRootUser, findRootUser } from '../../services/rootService.js';
+import {
+  createRootUser,
+  createUserService,
+  findRootUser,
+} from '../../services/rootService.js';
 import { createRootZodSchema } from '../../models/userZodSchema.js';
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
@@ -70,29 +74,10 @@ export const getUser = catchAsync(async (req, res, next) => {
 });
 
 export const createUser = catchAsync(async (req, res, next) => {
-  const { username, password, name, phone, email, image, role } = req.body;
-
-  await checkUniqueness({ username, email });
-
-  const data = { username, password, name, phone, email, image };
-
+  const userData = req.body;
   const requesterRole = req.user.role;
 
-  if (requesterRole === 'root') {
-    if (role === 'root') {
-      return next(
-        new AppError(
-          'Não é permitido criar um segundo usuário root no sistema',
-          403,
-        ),
-      );
-    }
-    data.role = role || 'journalist';
-  } else if (requesterRole === 'admin') {
-    data.role = 'journalist';
-  }
-
-  const newUser = await db.user.create({ data });
+  const newUser = await createUserService(userData, requesterRole);
 
   resfc(res, 201, { user: newUser });
 });

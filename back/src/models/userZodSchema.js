@@ -72,6 +72,7 @@ export const createRootZodSchema = z
     path: ['passwordConfirm'],
   })
   .transform((data) => {
+    // eslint-disable-next-line no-unused-vars
     const { passwordConfirm, ...rest } = data;
     return rest;
   });
@@ -111,6 +112,7 @@ export const createUserZodSchema = z
     path: ['passwordConfirm'],
   })
   .transform((data) => {
+    // eslint-disable-next-line no-unused-vars
     const { passwordConfirm, ...rest } = data;
     return rest;
   });
@@ -126,6 +128,7 @@ export const updateMyPasswordZodSchema = z
     path: ['passwordConfirm'],
   })
   .transform((data) => {
+    // eslint-disable-next-line no-unused-vars
     const { passwordConfirm, ...rest } = data;
     return rest;
   });
@@ -139,6 +142,7 @@ export const updateUserPasswordAsRootZodSchema = z
     path: ['passwordConfirm'],
   })
   .transform((data) => {
+    // eslint-disable-next-line no-unused-vars
     const { passwordConfirm, ...rest } = data;
     return rest;
   });
@@ -170,6 +174,7 @@ export const resetPasswordSchema = z
     path: ['passwordConfirm'],
   })
   .transform((data) => {
+    // eslint-disable-next-line no-unused-vars
     const { passwordConfirm, ...rest } = data;
     return rest;
   });
