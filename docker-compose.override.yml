@@ -4,12 +4,28 @@ services:
       context: ./back
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000" # Porta da API
-      - "5555:5555" # Porta do Prisma Studio
+      - '3000:3000'
+      - '5555:5555' # Porta do Prisma Studio
     environment:
       NODE_ENV: development
-    entrypoint: ["sh", "./scripts/init-db.sh"]
-    command: npm run start:dev:docker # Comando com nodemon
+    entrypoint: ['sh', './scripts/init-db.sh']
+    command: npm run start:dev:docker
     volumes: # Volumes para hot-reloading
       - ./back:/usr/src/app
       - /usr/src/app/node_modules
+    depends_on:
+      - db
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -10,6 +10,7 @@ import {
 } from '../../utils/controllers/userUtils.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
 import { handleRootCreation } from './rootController.js';
+import { sendPasswordResetEmail } from '../../utils/emailService.js';
 
 /*
 export const signUp = catchAsync(async (req, res, next) => {
@@ -62,31 +63,31 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   const { username } = req.body;
+
   const user = await db.user.findUnique({
     where: { username },
+    select: { id: true, name: true, email: true },
   });
 
   if (!user) {
     return next(new AppError('Usuário não encontrado', 404));
   }
 
-  const { token, hashedToken, expires } = await createPasswordResetToken(
-    user.id,
-  );
+  const { token } = await createPasswordResetToken(user.id);
 
-  const resetURL = `${req.protocol}://${req.get('host')}/api/v0/auth/resetPassword/${token}`;
-  const message = `Esqueceu sua senha? Entre neste link para criar uma nova senha: ${resetURL}`;
+  const resetURL = `${req.protocol}://${req.get(
+    'host',
+  )}/api/v0/auth/resetPassword/${token}`;
 
   try {
-    // await sendEmail({
-    //   email: user.email,
-    //   subject: 'Seu token de redefinição de senha (válido por 10 min)',
-    //   message,
-    // });
+    await sendPasswordResetEmail(
+      { email: user.email, name: user.name },
+      resetURL,
+    );
 
     resfc(res, 200, null, 'Token enviado para o seu email');
-    // eslint-disable-next-line no-unused-vars
   } catch (err) {
+    console.error('ERRO DETALHADO DO CATCH:', err);
     await db.user.update({
       where: { id: user.id },
       data: {
