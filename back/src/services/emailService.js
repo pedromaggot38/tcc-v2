@@ -3,7 +3,7 @@ import {
   SendSmtpEmail,
   TransactionalEmailsApiApiKeys,
 } from '@getbrevo/brevo';
-import AppError from './appError.js';
+import AppError from '../utils/appError.js';
 
 const apiInstance = new TransactionalEmailsApi();
 
@@ -53,6 +53,9 @@ export const sendPasswordResetEmail = async (to, resetURL) => {
       'Erro desconhecido ao enviar e-mail.';
     const errorCode = error.response?.body?.code || 'brevo_error';
 
-    throw new AppError(`Falha no envio do e-mail: ${errorMessage} (código: ${errorCode})`, 500);
+    throw new AppError(
+      `Falha no envio do e-mail: ${errorMessage} (código: ${errorCode})`,
+      500,
+    );
   }
 };

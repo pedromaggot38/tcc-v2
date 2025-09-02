@@ -32,6 +32,21 @@ const userProfileSchema = {
     .optional()
     .transform((val) => (val === '' ? null : val)),
 };
+const passwordConfirmationSchema = z
+  .object({
+    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
+    passwordConfirm: z
+      .string()
+      .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'As senhas não coincidem',
+    path: ['passwordConfirm'],
+  })
+  .transform((data) => {
+    const { passwordConfirm, ...rest } = data;
+    return rest;
+  });
 
 export const createRootZodSchema = z
   .object({
@@ -43,10 +58,6 @@ export const createRootZodSchema = z
         'O nome de usuário deve conter apenas letras e números',
       )
       .toLowerCase(),
-    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-    passwordConfirm: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
     name: z.string().min(NAME_MIN_LENGTH, NAME_ERROR_MESSAGE),
     email: z.string().email('Email inválido').toLowerCase(),
     phone: z
@@ -64,11 +75,8 @@ export const createRootZodSchema = z
       })
       .optional(),
   })
-  .strict()
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: 'As senhas não coincidem',
-    path: ['passwordConfirm'],
-  });
+  .merge(passwordConfirmationSchema)
+  .strict();
 
 export const createUserZodSchema = z
   .object({
@@ -80,10 +88,6 @@ export const createUserZodSchema = z
         'O nome de usuário deve conter apenas letras e números',
       )
       .toLowerCase(),
-    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-    passwordConfirm: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
     name: z.string().min(NAME_MIN_LENGTH, NAME_ERROR_MESSAGE),
     email: z.string().email('Email inválido').toLowerCase(),
     role: z.enum(['root', 'admin', 'journalist']).optional(),
@@ -102,13 +106,20 @@ export const createUserZodSchema = z
       })
       .optional(),
   })
-  .strict()
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: 'As senhas não coincidem',
-    path: ['passwordConfirm'],
-  });
+  .merge(passwordConfirmationSchema)
+  .strict();
 
-export const updateMeZodSchema = z.object(userProfileSchema).strict();
+export const updateMyPasswordZodSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'A senha atual é obrigatória'),
+  })
+  .merge(passwordConfirmationSchema)
+  .strict();
+
+export const updateUserPasswordAsRootZodSchema = z
+  .object({})
+  .merge(passwordConfirmationSchema)
+  .strict();
 
 export const updateUserZodSchema = z
   .object({
@@ -118,29 +129,20 @@ export const updateUserZodSchema = z
   })
   .strict();
 
-export const updateMyPasswordZodSchema = z
-  .object({
-    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-    passwordConfirm: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-    currentPassword: z.string().min(1, 'A senha atual é obrigatória'),
-  })
-  .strict()
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: 'As senhas não coincidem',
-    path: ['passwordConfirm'],
-  });
+export const forgotPasswordSchema = z.object({
+  username: z
+    .string()
+    .min(4, 'Nome de usuário é obrigatório')
+    .regex(
+      usernameRegex,
+      'O nome de usuário deve conter apenas letras e números',
+    )
+    .toLowerCase(),
+});
 
-export const updateUserPasswordAsRootZodSchema = z
-  .object({
-    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-    passwordConfirm: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
-  })
-  .strict()
-  .refine((data) => data.password === data.passwordConfirm, {
-    path: ['passwordConfirm'],
-    message: 'As senhas não coincidem',
-  });
+export const resetPasswordSchema = z
+  .object({})
+  .merge(passwordConfirmationSchema)
+  .strict();
+
+export const updateMeZodSchema = z.object(userProfileSchema).strict();

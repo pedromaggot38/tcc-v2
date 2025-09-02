@@ -2,10 +2,11 @@ import catchAsync from '../../utils/catchAsync.js';
 import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
 import AppError from '../../utils/appError.js';
+import { validateEmailRemoval } from '../../utils/controllers/userUtils.js';
 import {
   checkUniqueness,
-  validateEmailRemoval,
-} from '../../utils/controllers/userUtils.js';
+  updateUserPassword,
+} from '../../services/userService.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
@@ -50,6 +51,15 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 
   resfc(res, 200, { user: updatedUser });
+});
+
+export const updateMyPassword = catchAsync(async (req, res, next) => {
+  const { currentPassword, password: newPassword } = req.body;
+  const userId = req.user.id;
+
+  await updateUserPassword(userId, currentPassword, newPassword);
+
+  resfc(res, 200, null, 'Senha alterada com sucesso');
 });
 
 export const deactivateMyAccount = catchAsync(async (req, res, next) => {

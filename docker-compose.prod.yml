@@ -7,7 +7,7 @@ services:
       context: ./back
       dockerfile: Dockerfile.prod # Garante que usa o Dockerfile de produção
     ports:
-      - "3000:3000" # Apenas a porta da API
+      - '3000:3000' # Apenas a porta da API
     restart: unless-stopped
     # As variáveis de ambiente serão fornecidas pelo seu servidor de produção,
     # não por um ficheiro .env local.
@@ -17,5 +17,5 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       JWT_COOKIE_EXPIRES_IN: ${JWT_COOKIE_EXPIRES_IN}
-      MAILTRAP_TOKEN: ${MAILTRAP_TOKEN}
-      MAILTRAP_INBOX_ID: ${MAILTRAP_INBOX_ID}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}

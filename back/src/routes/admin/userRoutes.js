@@ -1,6 +1,5 @@
 import express from 'express';
 
-import { updateMyPassword } from '../../controllers/admin/authController.js';
 import {
   createUser,
   deleteUserAsRoot,
@@ -15,6 +14,7 @@ import {
   deactivateMyAccount,
   getMe,
   updateMe,
+  updateMyPassword,
 } from '../../controllers/admin/userController.js';
 import validate from '../../middlewares/validate.js';
 import {

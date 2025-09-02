@@ -2,17 +2,15 @@ import db from '../../config/db.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
-import {
-  createRootZodSchema,
-  updateUserPasswordAsRootZodSchema,
-} from '../../models/userZodSchema.js';
+import { createRootZodSchema } from '../../models/userZodSchema.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
 import {
-  checkUniqueness,
   comparePassword,
   validateEmailRemoval,
 } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
+import { checkUniqueness } from '../../services/userService.js';
+import { createRootUser, findRootUser } from '../../services/rootService.js';
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
@@ -180,43 +178,35 @@ export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
 });
 
 export const checkRootExists = catchAsync(async (req, res, next) => {
-  const hasRootUser = await db.user.findFirst({ where: { role: 'root' } });
+  const rootUser = await findRootUser();
 
-  if (hasRootUser) {
-    if (hasRootUser.active === false) {
-      return resfc(
-        res,
-        200,
-        { exists: true },
-        '⚠️ Atenção: O único usuário com função de root está com a conta desativada. Isso pode comprometer o acesso administrativo ao sistema. Entre em contato com a equipe de T.I. imediatamente para restaurar o acesso.',
-      );
-    }
+  if (!rootUser) {
+    return resfc(
+      res,
+      200,
+      { exists: false },
+      'Não há um usuário com a função root no sistema',
+    );
+  }
+
+  if (rootUser.active === false) {
     return resfc(
       res,
       200,
       { exists: true },
-      'Já existe um usuário com a função de root',
+      '⚠️ Atenção: O único usuário com função de root está com a conta desativada. Isso pode comprometer o acesso administrativo ao sistema. Entre em contato com a equipe de T.I. imediatamente para restaurar o acesso.',
     );
   }
-
-  resfc(
+  return resfc(
     res,
     200,
-    { exists: false },
-    'Não há usuário com a função de root registrado',
+    { exists: true },
+    'Já existe um usuário com a função de root',
   );
 });
 
 export const handleRootCreation = catchAsync(async (req, res, next) => {
-  const validatedData = createRootZodSchema.parse(req.body);
-
-  const { passwordConfirm, ...userData } = validatedData;
-
-  const data = { ...userData, role: 'root' };
-
-  const newUser = await db.user.create({
-    data,
-  });
+  const newUser = await createRootUser(req.body);
 
   return createSendToken(newUser, 201, res);
 });
