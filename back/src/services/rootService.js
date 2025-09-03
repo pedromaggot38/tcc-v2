@@ -46,6 +46,15 @@ export const checkRootStatusService = async () => {
  * @returns {Promise<object>}
  */
 export const createRootUser = async (rootUserData) => {
+  const rootExists = await findAnyRootUser();
+
+  if (rootExists) {
+    throw new AppError(
+      'Operação não permitida: um usuário root já existe.',
+      409,
+    );
+  }
+
   const data = { ...rootUserData, role: 'root' };
 
   const newUser = await db.user.create({
@@ -128,14 +137,14 @@ export const updateUserService = async (
     throw new AppError('Usuário não encontrado', 404);
   }
 
-  const { email, role, ...data } = updateData;
+  const data = { ...updateData };
 
-  if (email && email !== targetUser.email) {
-    await checkUniqueness({ email }, targetUser.id);
+  if (data.email && data.email !== targetUser.email) {
+    await checkUniqueness({ email: data.email }, targetUser.id);
   }
 
-  if (role && currentUserRole === 'root') {
-    data.role = role;
+  if (data.role && currentUserRole !== 'root') {
+    delete data.role;
   }
 
   const updatedUser = await db.user.update({
@@ -160,7 +169,7 @@ export const updateUserPasswordAsRootService = async (
 
   await db.user.update({
     where: { username },
-    data: { newPassword },
+    data: { password: newPassword },
   });
 };
 
@@ -181,7 +190,7 @@ export const deleteUserAsRootService = async (
     throw new AppError('Não é possível excluir um usuário root', 404);
   }
 
-  const isPasswordValid = comparePassword(
+  const isPasswordValid = await comparePassword(
     confirmationPassword,
     currentUser.password,
   );
@@ -192,4 +201,70 @@ export const deleteUserAsRootService = async (
   await db.user.delete({ where: { username: usernameToDelete } });
 };
 
-export const transferRootRole = async () => {};
+export const eligibleForRootTransferService = async () => {
+  const eligibleUsers = await db.user.findMany({
+    where: {
+      role: 'admin',
+      active: true,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      image: true,
+    },
+  });
+
+  return eligibleUsers;
+};
+
+export const transferRootRoleService = async (
+  targetUsername,
+  confirmationPassword,
+  currentUser,
+) => {
+  const isPasswordValid = await comparePassword(
+    confirmationPassword,
+    currentUser.password,
+  );
+
+  if (!isPasswordValid) {
+    throw new AppError('A senha do usuário root está inválida.', 401);
+  }
+
+  const targetUser = await db.user.findUnique({
+    where: { username: targetUsername },
+  });
+
+  if (!targetUser || !targetUser.active) {
+    throw new AppError('Usuário alvo inválido ou inativo.', 404);
+  }
+
+  if (targetUser.id === currentUser.id) {
+    throw new AppError(
+      'Você não pode transferir o papel de root para si mesmo.',
+      400,
+    );
+  }
+  if (targetUser.role === 'root') {
+    throw new AppError('Este usuário já possui o papel de root.', 400);
+  }
+  if (targetUser.role !== 'admin') {
+    throw new AppError(
+      'O papel de root só pode ser transferido para um administrador.',
+      400,
+    );
+  }
+
+  await db.$transaction([
+    db.user.update({
+      where: { id: currentUser.id },
+      data: { role: 'admin' },
+    }),
+    db.user.update({
+      where: { id: targetUser.id },
+      data: { role: 'root' },
+    }),
+  ]);
+};

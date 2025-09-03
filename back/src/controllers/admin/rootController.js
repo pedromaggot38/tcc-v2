@@ -1,20 +1,39 @@
-import db from '../../config/db.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
-import { comparePassword } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
 import {
   checkRootStatusService,
   createRootUser,
   createUserService,
   deleteUserAsRootService,
+  eligibleForRootTransferService,
   getAllUsersService,
   getUserService,
+  transferRootRoleService,
   updateUserPasswordAsRootService,
   updateUserService,
 } from '../../services/rootService.js';
+
+export const checkRootExists = catchAsync(async (req, res, next) => {
+  const status = await checkRootStatusService();
+
+  resfc(
+    res,
+    200,
+    { exists: status.exists, active: status.active },
+    status.message,
+  );
+});
+
+export const handleRootCreation = catchAsync(async (req, res, next) => {
+  const data = req.body;
+
+  const newUser = await createRootUser(data);
+
+  return createSendToken(newUser, 201, res);
+});
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
@@ -98,91 +117,25 @@ export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
   resfc(res, 204);
 });
 
-export const checkRootExists = catchAsync(async (req, res, next) => {
-  const status = await checkRootStatusService();
-
-  resfc(
-    res,
-    200,
-    { exists: status.exists, active: status.active },
-    status.message,
-  );
-});
-
-export const handleRootCreation = catchAsync(async (req, res, next) => {
-  const data = req.body;
-
-  const newUser = await createRootUser(data);
-
-  return createSendToken(newUser, 201, res);
-});
-
 export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
-  const elegibleUsers = await db.user.findMany({
-    where: {
-      role: 'admin',
-      active: true,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      image: true,
-    },
-  });
+  const eligibleUsers = await eligibleForRootTransferService();
 
-  resfc(res, 200, { users: elegibleUsers });
+  resfc(res, 200, { users: eligibleUsers });
 });
 
 export const transferRootRole = catchAsync(async (req, res, next) => {
   const { targetUsername, password } = req.body;
-  const currentUserId = req.user.id;
 
   if (!password) {
     return next(
-      new AppError('A sua senha é necessária para confirmar a operação', 400),
+      new AppError('A sua senha é necessária para confirmar a operação.', 400),
     );
   }
   if (!targetUsername) {
-    return next(new AppError('Nome de usuário do alvo é obrigatório.', 400));
+    return next(new AppError('O nome de usuário do alvo é obrigatório.', 400));
   }
 
-  const [currentUser, targetUser] = await Promise.all([
-    db.user.findUnique({ where: { id: currentUserId } }),
-    db.user.findUnique({ where: { username: targetUsername } }),
-  ]);
-
-  if (!currentUser) {
-    return next(new AppError('Usuário root atual não encontrado', 404));
-  }
-  const isPasswordValid = await comparePassword(password, currentUser.password);
-  if (!isPasswordValid) {
-    return next(new AppError('A senha fornecida está incorreta.', 401));
-  }
-
-  if (!targetUser || !targetUser.active) {
-    return next(new AppError('Usuário alvo inválido ou inativo', 404));
-  }
-
-  if (targetUser.id === currentUserId) {
-    return next(new AppError('Você já é o root.', 400));
-  }
-
-  if (targetUser.role === 'root') {
-    return next(new AppError('Este usuário já é root', 400));
-  }
-
-  await db.$transaction([
-    db.user.update({
-      where: { id: currentUserId },
-      data: { role: 'admin' },
-    }),
-    db.user.update({
-      where: { id: targetUser.id },
-      data: { role: 'root' },
-    }),
-  ]);
+  await transferRootRoleService(targetUsername, password, req.user);
 
   resfc(res, 200, null, 'Papel de root transferido com sucesso');
 });

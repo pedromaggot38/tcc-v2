@@ -69,6 +69,6 @@ router.patch(
   updateUserPasswordAsRoot,
 );
 
-router.route('/:username/delete').post(rootOnly, deleteUserAsRoot);
+router.delete('/:username/delete', ...rootOnly, deleteUserAsRoot);
 
 export default router;
