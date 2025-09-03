@@ -70,7 +70,7 @@ As instruções completas para executar o projeto (front-end e back-end) estão 
 1.  **Clone o repositório:**
 
     ```bash
-    git clone <url_do_seu_repositorio>
+    git clone https://github.com/pedromaggot38/tcc-v2.git
     cd tcc-v2
     ```
 
@@ -87,7 +87,7 @@ As instruções completas para executar o projeto (front-end e back-end) estão 
 4.  **Inicie os containers Docker:**
     A partir da raiz do projeto (`tcc-v2`), execute:
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
     O servidor estará disponível em `http://localhost:3000`.
 
