@@ -179,4 +179,19 @@ export const resetPasswordSchema = z
     return rest;
   });
 
-export const updateMeZodSchema = userProfileSchema.strict();
+export const transferRootRoleConfirmationSchema = z
+  .object({
+    targetUsername: z
+      .string()
+      .min(1, 'O nome de usuário do alvo é obrigatório'),
+    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
+  })
+  .strict();
+
+export const deleteUserConfirmationSchema = z
+  .object({
+    password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
+  })
+  .strict();
+
+export const updateMeSchema = userProfileSchema.strict();

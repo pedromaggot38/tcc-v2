@@ -149,3 +149,42 @@ export const toggleVisibilityDoctorService = async (doctorId) => {
 export const deleteDoctorService = async (doctorId) => {
   await db.doctor.delete({ where: { id: doctorId } });
 };
+
+// PUBLIC ROUTES SERVICES
+
+export const getAllDoctorsPublicService = async ({
+  filters,
+  orderBy,
+  skip,
+  limit,
+}) => {
+  const whereClause = { visible: true, ...filters };
+
+  const [totalItems, doctors] = await db.$transaction([
+    db.doctor.count({ where: whereClause }),
+    db.doctor.findMany({
+      where: whereClause,
+      skip,
+      take: limit,
+      orderBy: Object.keys(orderBy).length ? orderBy : { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        specialty: true,
+        state: true,
+        crm: true,
+        schedules: {
+          select: {
+            dayOfWeek: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return { totalItems, doctors, totalPages };
+};

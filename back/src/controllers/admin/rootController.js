@@ -108,10 +108,6 @@ export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
   const { username } = req.params;
   const { password } = req.body;
 
-  if (!password) {
-    return next(new AppError('A senha de confirmação é obrigatória', 400));
-  }
-
   await deleteUserAsRootService(username, password, req.user);
 
   resfc(res, 204);
@@ -125,15 +121,6 @@ export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
 
 export const transferRootRole = catchAsync(async (req, res, next) => {
   const { targetUsername, password } = req.body;
-
-  if (!password) {
-    return next(
-      new AppError('A sua senha é necessária para confirmar a operação.', 400),
-    );
-  }
-  if (!targetUsername) {
-    return next(new AppError('O nome de usuário do alvo é obrigatório.', 400));
-  }
 
   await transferRootRoleService(targetUsername, password, req.user);
 

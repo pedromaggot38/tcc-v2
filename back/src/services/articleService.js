@@ -177,3 +177,60 @@ export const toggleArchiveArticleService = async (articleId) => {
 export const deleteArticleService = async (articleId) => {
   await db.article.delete({ where: { id: articleId } });
 };
+
+// PUBLIC ROUTES SERVICES
+
+export const getAllArticlesPublicService = async ({
+  filters,
+  orderBy,
+  skip,
+  limit,
+}) => {
+  const whereClause = { status: 'published', ...filters };
+
+  const [totalItems, articles] = await db.$transaction([
+    db.article.count({ where: whereClause }),
+    db.article.findMany({
+      where: whereClause,
+      skip,
+      take: limit,
+      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
+      select: {
+        title: true,
+        subtitle: true,
+        content: true,
+        slug: true,
+        author: true,
+        imageUrl: true,
+        imageDescription: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return { totalItems, articles, totalPages };
+};
+
+export const getArticlePublicService = async (slug) => {
+  const article = await db.article.findUnique({
+    where: { slug, status: 'published' },
+    select: {
+      title: true,
+      subtitle: true,
+      content: true,
+      slug: true,
+      author: true,
+      imageUrl: true,
+      imageDescription: true,
+      createdAt: true,
+    },
+  });
+
+  if (!article) {
+    throw new AppError('Artigo não encontrado ou não está publicado', 404);
+  }
+
+  return article;
+};

@@ -20,9 +20,11 @@ import validate from '../../middlewares/validate.js';
 import {
   updateMyPasswordZodSchema,
   updateUserPasswordAsRootZodSchema,
-  updateMeZodSchema,
+  updateMeSchema,
   updateUserZodSchema,
   createUserZodSchema,
+  transferRootRoleConfirmationSchema,
+  deleteUserConfirmationSchema,
 } from '../../models/userZodSchema.js';
 import {
   adminOrRoot,
@@ -33,16 +35,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', ...adminOrRoot, getAllUsers);
-router.post('/', ...adminOrRoot, validate(createUserZodSchema), createUser);
-
-router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
-router.post('/transfer-root', ...rootOnly, transferRootRole);
-
 router
   .route('/me')
   .get(...authenticatedUser, getMe)
-  .patch(...authenticatedUser, validate(updateMeZodSchema), updateMe)
+  .patch(...authenticatedUser, validate(updateMeSchema), updateMe)
   .delete(...authenticatedUser, deactivateMyAccount);
 
 router.patch(
@@ -50,6 +46,19 @@ router.patch(
   ...authenticatedUser,
   validate(updateMyPasswordZodSchema),
   updateMyPassword,
+);
+
+// ADMIN OR ROOT ROUTES ONLY
+
+router.get('/', ...adminOrRoot, getAllUsers);
+router.post('/', ...adminOrRoot, validate(createUserZodSchema), createUser);
+
+router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
+router.post(
+  '/transfer-root',
+  ...rootOnly,
+  validate(transferRootRoleConfirmationSchema),
+  transferRootRole,
 );
 
 router
@@ -60,6 +69,11 @@ router
     checkUserHierarchy,
     validate(updateUserZodSchema),
     updateUser,
+  )
+  .delete(
+    ...rootOnly,
+    validate(deleteUserConfirmationSchema),
+    deleteUserAsRoot,
   );
 
 router.patch(
@@ -68,7 +82,5 @@ router.patch(
   validate(updateUserPasswordAsRootZodSchema),
   updateUserPasswordAsRoot,
 );
-
-router.delete('/:username/delete', ...rootOnly, deleteUserAsRoot);
 
 export default router;
