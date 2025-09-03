@@ -1,77 +1,45 @@
 import catchAsync from '../../utils/catchAsync.js';
-import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
-import AppError from '../../utils/appError.js';
+import {
+  deactivateMyAccountService,
+  getMeService,
+  updateMeService,
+  updateMyUserPasswordService,
+} from '../../services/userService.js';
+import { clearAuthCookie } from '../../utils/controllers/authUtils.js';
 
 export const getMe = catchAsync(async (req, res, next) => {
   const { id } = req.user;
-  const user = await db.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      username: true,
-      role: true,
-      active: true,
-    },
-  });
 
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
+  const user = await getMeService(id);
 
   resfc(res, 200, { user });
 });
 
 export const updateMe = catchAsync(async (req, res, next) => {
-  const { id } = req.user;
+  const userId = req.user.id;
+  const updateData = req.body;
 
-  const user = await db.user.findUnique({ where: { id } });
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
-
-  const { email, ...data } = req.body;
-
-  if (email && email !== user.email) {
-    const existingEmail = await db.user.findUnique({ where: { email } });
-    if (existingEmail) {
-      return next(new AppError('E-mail já está em uso', 400));
-    }
-    data.email = email;
-  }
-
-  const updatedUser = await db.user.update({
-    where: { id },
-    data,
-  });
+  const updatedUser = await updateMeService(userId, updateData);
 
   resfc(res, 200, { user: updatedUser });
 });
 
+export const updateMyPassword = catchAsync(async (req, res, next) => {
+  const { currentPassword, password: newPassword } = req.body;
+  const userId = req.user.id;
+
+  await updateMyUserPasswordService(userId, currentPassword, newPassword);
+
+  resfc(res, 200, null, 'Senha alterada com sucesso');
+});
+
 export const deactivateMyAccount = catchAsync(async (req, res, next) => {
   const { id } = req.user;
-  const user = await db.user.findUnique({ where: { id } });
 
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
+  await deactivateMyAccountService(id);
 
-  if (user.role === 'root') {
-    return next(
-      new AppError(
-        'Não é possível desativar sua conta enquanto você for o único administrador root ativo. Transfira a permissão para outro usuário antes de continuar',
-      ),
-    );
-  }
+  clearAuthCookie(res);
 
-  await db.user.update({
-    where: { id },
-    data: {
-      active: false,
-    },
-  });
-
-  resfc(res, 200, null, 'Conta desativada com sucesso');
+  resfc(res, 200, null, 'Conta desativada com sucesso. Você foi desconectado!');
 });

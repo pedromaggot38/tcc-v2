@@ -4,6 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import path from 'path';
 import cors from 'cors';
+import hpp from 'hpp';
 
 import globalErrorHandler from './controllers/admin/errorController.js';
 import publicArticleRouter from './routes/public/articleRoutes.js';
@@ -24,17 +25,13 @@ app.use(
   }),
 );
 
-app.use(helmet());
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
-    },
-  }),
-);
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet());
+} else {
+  app.use(helmet({ contentSecurityPolicy: false }));
+}
+
+app.use(hpp());
 
 const limiter = rateLimit({
   max: 100,
@@ -49,13 +46,13 @@ app.use(express.json({ limit: '10kb' }));
 
 app.use(express.static(`${__dirname}/public`));
 
-app.use('/api/v0/admin/auth', authRoutes);
-app.use('/api/v0/admin/users', userRouter);
-app.use('/api/v0/admin/doctors', doctorRouter);
-app.use('/api/v0/admin/articles', articleRouter);
+app.use('/api/v1/admin/auth', authRoutes);
+app.use('/api/v1/admin/users', userRouter);
+app.use('/api/v1/admin/doctors', doctorRouter);
+app.use('/api/v1/admin/articles', articleRouter);
 
-app.use('/api/v0/public/articles', publicArticleRouter);
-app.use('/api/v0/public/doctors', publicDoctorRouter);
+app.use('/api/v1/public/articles', publicArticleRouter);
+app.use('/api/v1/public/doctors', publicDoctorRouter);
 
 app.all('*', (req, res, next) => {
   next(

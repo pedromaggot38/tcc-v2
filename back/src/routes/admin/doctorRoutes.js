@@ -1,29 +1,32 @@
 import express from 'express';
 import {
   createDoctor,
+  deleteDoctor,
   getAllDoctors,
   getDoctor,
+  toggleVisibilityDoctor,
   updateDoctor,
 } from '../../controllers/admin/doctorController.js';
-import { protect, restrictTo } from '../../controllers/admin/authController.js';
 import validate from '../../middlewares/validate.js';
-import { createDoctorZodSchema } from '../../models/doctorZodSchema.js';
-
-const adminOrRoot = [protect, restrictTo('admin', 'root')];
+import { adminOrRoot } from '../../middlewares/auth.js';
+import {
+  createDoctorZodSchema,
+  updateDoctorZodSchema,
+} from '../../models/doctorZodSchema.js';
 
 const router = express.Router();
 
 router
   .route('/')
-  .get(adminOrRoot, getAllDoctors)
-  .post(adminOrRoot, validate(createDoctorZodSchema), createDoctor);
+  .get(...adminOrRoot, getAllDoctors)
+  .post(...adminOrRoot, validate(createDoctorZodSchema), createDoctor);
 
 router
   .route('/:id')
-  .get(protect, getDoctor)
-  .post(protect, updateDoctor)
-  .delete(protect, restrictTo('admin', 'root'), updateDoctor);
+  .get(...adminOrRoot, getDoctor)
+  .patch(...adminOrRoot, validate(updateDoctorZodSchema), updateDoctor)
+  .delete(...adminOrRoot, deleteDoctor);
 
-router.route('/:id/visibility').patch(protect, restrictTo('admin', 'root'));
+router.route('/:id/visibility').patch(...adminOrRoot, toggleVisibilityDoctor);
 
 export default router;

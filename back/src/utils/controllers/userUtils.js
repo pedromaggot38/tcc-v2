@@ -1,7 +1,5 @@
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import AppError from '../appError.js';
-import db from '../../config/db.js';
 
 /**
  * Verifica se o usuário mudou a senha após o token ser emitido.
@@ -23,27 +21,20 @@ export const hashPassword = async (password) => {
 };
 
 export const comparePassword = async (candidatePassword, storedPassword) => {
-  console.log(candidatePassword, storedPassword);
   return await bcrypt.compare(candidatePassword, storedPassword);
 };
 
-export const createPasswordResetToken = async (userId) => {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-
-  const hashedToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-
-  const expires = new Date(Date.now() + 10 * 60 * 1000);
-
-  await db.user.update({
-    where: { id: userId },
-    data: {
-      passwordResetToken: hashedToken,
-      passwordResetExpires: expires,
-    },
-  });
-
-  return { token: resetToken, hashedToken, expires };
+/**
+ * Valida a regra de negócio que impede a remoção de um e-mail.
+ * @param {object} body - O req.body da requisição.
+ * @param {string|null} email - O valor do e-mail do req.body.
+ * @returns {void} - Lança um AppError se a remoção for tentada.
+ */
+export const validateEmailRemoval = (body) => {
+  if (Object.hasOwn(body, 'email') && body.email === null) {
+    throw new AppError(
+      'O campo de e-mail é obrigatório e não pode ser nulo.',
+      400,
+    );
+  }
 };

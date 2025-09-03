@@ -1,4 +1,11 @@
-import db from '../../config/db.js';
+import {
+  createDoctorService,
+  deleteDoctorService,
+  getAllDoctorsService,
+  getDoctorService,
+  toggleVisibilityDoctorService,
+  updateDoctorService,
+} from '../../services/doctorService.js';
 import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import convertId from '../../utils/convertId.js';
@@ -9,102 +16,81 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
   const validFilterFields = ['name', 'specialty', 'crm'];
   const validSortFields = ['createdAt', 'name', 'active'];
 
-  const { skip, limit, orderBy, filters } = parseQueryParams(
+  const { skip, limit, orderBy, filters, page } = parseQueryParams(
     req.query,
     validFilterFields,
     validSortFields,
   );
 
-  const doctors = await db.doctor.findMany({
-    where: { ...filters },
+  const { doctors, totalItems, totalPages } = await getAllDoctorsService({
+    filters,
+    orderBy,
     skip,
-    take: limit,
-    orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-    include: {
-      createdByUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-        },
-      },
-      schedules: {
-        select: {
-          dayOfWeek: true,
-          startTime: true,
-          endTime: true,
-        },
-      },
-    },
+    limit,
   });
 
-  resfc(res, 200, { doctors }, null, doctors.length);
+  resfc(res, 200, {
+    doctors,
+    pagination: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
+    },
+  });
 });
 
 export const createDoctor = catchAsync(async (req, res, next) => {
-  const data = {
-    ...req.body,
-    createdBy: req.user.id,
-    schedules: req.body.schedules
-      ? {
-          create: req.body.schedules.map((schedule) => ({
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-          })),
-        }
-      : [],
-  };
+  const doctorData = req.body;
+  const userId = req.user.id;
 
-  const newDoctor = await db.doctor.create({ data });
+  const newDoctor = await createDoctorService(doctorData, userId);
+
   resfc(res, 201, { doctor: newDoctor });
 });
 
 export const getDoctor = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const doctorId = convertId(req.params.id);
 
-  const doctor = await db.doctor.findUnique({
-    where: { id },
-    include: {
-      schedules: true,
-    },
-  });
-
-  if (!doctor) {
-    return next(new AppError('Nenhum médico encontrado'));
+  if (!doctorId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
+
+  const doctor = await getDoctorService(doctorId);
 
   resfc(res, 200, { doctor });
 });
-export const updateDoctor = catchAsync(async (req, res, next) => {});
+
+export const updateDoctor = catchAsync(async (req, res, next) => {
+  const doctorId = convertId(req.params.id);
+
+  if (!doctorId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
+  }
+
+  const updateData = req.body;
+  const userId = req.user.id;
+
+  const updatedDoctor = await updateDoctorService(doctorId, updateData, userId);
+
+  resfc(res, 200, { doctor: updatedDoctor }, 'Médico atualizado com sucesso.');
+});
 
 export const toggleVisibilityDoctor = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const doctorId = convertId(req.params.id);
 
-  const doctor = await db.doctor.findUnique({ where: { id } });
-
-  if (!doctor) {
-    return next(new AppError('Nenhum médico encontrado', 404));
+  if (!doctorId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  let visible;
-
-  switch (doctor.visible) {
-    case true:
-      visible = false;
-      break;
-    case false:
-      visible = true;
-      break;
-    default:
-      return next(
-        new AppError('Erro ao tentar alterar a visibilidade do médico', 500),
-      );
-  }
-  const updatedDoctor = await db.doctor.update({
-    where: { id },
-    data: { visible },
-  });
+  const { updatedDoctor, visible } =
+    await toggleVisibilityDoctorService(doctorId);
 
   resfc(
     res,
@@ -117,15 +103,15 @@ export const toggleVisibilityDoctor = catchAsync(async (req, res, next) => {
 });
 
 export const deleteDoctor = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const doctorId = convertId(req.params.id);
 
-  const doctor = await db.doctor.findUnique({ where: { id } });
-
-  if (!doctor) {
-    return next(new AppError('Nenhum médico encontrado'));
+  if (!doctorId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  await db.doctor.delete({ where: { id } });
+  await deleteDoctorService(doctorId);
 
   resfc(res, 204);
 });

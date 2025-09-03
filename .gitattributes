@@ -1,0 +1,5 @@
+# Tratar todos os arquivos de texto com conversão automática de quebra de linha
+* text=auto
+
+# Garantir que scripts de shell sempre usem quebras de linha LF (Unix)
+*.sh text eol=lf

@@ -4,7 +4,6 @@ import slugify from 'slugify';
 
 const globalForPrisma = globalThis;
 
-// Funções de lógica de negócio existentes
 const removeNullFields = (obj) => {
   if (obj && typeof obj === 'object') {
     Object.entries(obj).forEach(([key, value]) => {
@@ -72,8 +71,10 @@ const prismaWithExtensions = new PrismaClient().$extends({
           runInTransaction: false,
         };
 
-        // Lógica de pré-operação
-        if (params.model === 'User' && ['create', 'update'].includes(params.action)) {
+        if (
+          params.model === 'User' &&
+          ['create', 'update'].includes(params.action)
+        ) {
           await hashUserPassword(params);
         }
 
@@ -84,7 +85,7 @@ const prismaWithExtensions = new PrismaClient().$extends({
 
         const result = await query(args);
 
-        processResult(result);
+        // processResult(result);
 
         return result;
       },

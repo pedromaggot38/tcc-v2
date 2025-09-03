@@ -13,26 +13,25 @@ import {
   createArticleZodSchema,
   updateArticleZodSchema,
 } from '../../models/articleZodSchema.js';
-import { protect, restrictTo } from '../../controllers/admin/authController.js';
+import { adminOrRoot, authenticatedUser } from '../../middlewares/auth.js';
 
 const router = express.Router();
 
 router
   .route('/')
-  .get(protect, getAllArticles)
-  .post(protect, validate(createArticleZodSchema), createArticle);
+  .get(...authenticatedUser, getAllArticles)
+  .post(...authenticatedUser, validate(createArticleZodSchema), createArticle);
 
 router
   .route('/:id')
-  .get(protect, getArticle)
-  .patch(protect, validate(updateArticleZodSchema), updateArticle)
-  .delete(protect, restrictTo('admin', 'root'), deleteArticle);
+  .get(...authenticatedUser, getArticle)
+  .patch(...authenticatedUser, validate(updateArticleZodSchema), updateArticle)
+  .delete(...adminOrRoot, deleteArticle);
 
-router.patch('/:id/publish', protect, togglePublishArticle);
+router.patch('/:id/publish', ...authenticatedUser, togglePublishArticle);
 router.patch(
   '/:id/archive',
-  protect,
-  restrictTo('admin', 'root'),
+  ...adminOrRoot,
   toggleArchiveArticle,
 );
 

@@ -1,0 +1,40 @@
+# docker-compose -f .prod.yml up
+
+services:
+  # Serviço do Back-end
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile.prod # Garante que usa o Dockerfile de produção
+    ports:
+      - '3000:3000' # Apenas a porta da API
+    restart: unless-stopped
+    # As variáveis de ambiente serão fornecidas pelo seu servidor de produção,
+    # não por um ficheiro .env local.
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_COOKIE_EXPIRES_IN: ${JWT_COOKIE_EXPIRES_IN}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
+    command: npm run start:prod:docker
+
+    # REMOVER A PARTIR DAQUI SE FOR COLOCAR EM PRODUÇAO
+    depends_on:
+      - db
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,74 +1,94 @@
 import express from 'express';
 
 import {
-  protect,
-  restrictTo,
-  updateMyPassword,
-} from '../../controllers/admin/authController.js';
-import {
-  createUserAsRoot,
+  createUser,
   deleteUserAsRoot,
   eligibleForRootTransfer,
-  getAllUsersAsRoot,
-  getUserAsRoot,
+  getAllUsers,
+  getUser,
+  toggleUserActive,
   transferRootRole,
-  updateUserAsRoot,
+  updateUser,
   updateUserPasswordAsRoot,
 } from '../../controllers/admin/rootController.js';
 import {
   deactivateMyAccount,
   getMe,
   updateMe,
+  updateMyPassword,
 } from '../../controllers/admin/userController.js';
 import validate from '../../middlewares/validate.js';
 import {
-  createUserAsRootZodSchema,
-  updateMyPasswordZodSchema,
-  updateUserAsRootZodSchema,
-  updateUserPasswordAsRootZodSchema,
-  updateMeZodSchema,
+  updateMyPasswordSchema,
+  updateUserPasswordAsRootSchema,
+  updateMeSchema,
+  updateUserSchema,
+  createUserSchema,
+  transferRootRoleConfirmationSchema,
+  deleteUserConfirmationSchema,
 } from '../../models/userZodSchema.js';
-
-const adminOrRoot = [protect, restrictTo('admin', 'root')];
-const rootOnly = [protect, restrictTo('root')];
+import {
+  adminOrRoot,
+  authenticatedUser,
+  checkUserHierarchy,
+  rootOnly,
+} from '../../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/', adminOrRoot, getAllUsersAsRoot);
-router.post(
-  '/',
-  adminOrRoot,
-  validate(createUserAsRootZodSchema),
-  createUserAsRoot,
-);
-router.get('/eligible-for-root', rootOnly, eligibleForRootTransfer);
-router.post('/transfer-root', rootOnly, transferRootRole);
-
 router
   .route('/me')
-  .get(protect, getMe)
-  .patch(protect, validate(updateMeZodSchema), updateMe)
-  .delete(protect, deactivateMyAccount);
+  .get(...authenticatedUser, getMe)
+  .patch(...authenticatedUser, validate(updateMeSchema), updateMe)
+  .delete(...authenticatedUser, deactivateMyAccount);
 
 router.patch(
   '/me/password',
-  protect,
-  validate(updateMyPasswordZodSchema),
+  ...authenticatedUser,
+  validate(updateMyPasswordSchema),
   updateMyPassword,
+);
+
+// ADMIN OR ROOT ROUTES ONLY
+
+router.get('/', ...adminOrRoot, getAllUsers);
+router.post('/', ...adminOrRoot, validate(createUserSchema), createUser);
+
+router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
+router.post(
+  '/transfer-root',
+  ...rootOnly,
+  validate(transferRootRoleConfirmationSchema),
+  transferRootRole,
 );
 
 router
   .route('/:username')
-  .get(adminOrRoot, getUserAsRoot)
-  .patch(adminOrRoot, validate(updateUserAsRootZodSchema), updateUserAsRoot);
+  .get(...adminOrRoot, getUser)
+  .patch(
+    ...adminOrRoot,
+    checkUserHierarchy,
+    validate(updateUserSchema),
+    updateUser,
+  )
+  .delete(
+    ...rootOnly,
+    validate(deleteUserConfirmationSchema),
+    deleteUserAsRoot,
+  );
+
+router.patch(
+  '/:username/active',
+  ...adminOrRoot,
+  checkUserHierarchy,
+  toggleUserActive,
+);
 
 router.patch(
   '/:username/password',
-  rootOnly,
-  validate(updateUserPasswordAsRootZodSchema),
+  ...rootOnly,
+  validate(updateUserPasswordAsRootSchema),
   updateUserPasswordAsRoot,
 );
-
-router.route('/:username/delete').post(rootOnly, deleteUserAsRoot);
 
 export default router;
