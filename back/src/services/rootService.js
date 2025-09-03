@@ -268,3 +268,34 @@ export const transferRootRoleService = async (
     }),
   ]);
 };
+
+export const toggleUserActiveService = async (username, currentUser) => {
+  const targetUser = await db.user.findUnique({ where: { username } });
+
+  if (!targetUser) {
+    throw new AppError('Usuário não encontrado.', 404);
+  }
+
+  if (targetUser.id === currentUser.id) {
+    throw new AppError(
+      'Você não pode desativar sua própria conta por esta rota.',
+      400,
+    );
+  }
+
+  if (targetUser.role === 'root') {
+    throw new AppError(
+      'Não é possível desativar o usuário root do sistema.',
+      400,
+    );
+  }
+
+  const newStatus = !targetUser.active;
+
+  const updatedUser = await db.user.update({
+    where: { username },
+    data: { active: newStatus },
+  });
+
+  return { updatedUser, newStatus };
+};

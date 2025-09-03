@@ -11,6 +11,7 @@ import {
   eligibleForRootTransferService,
   getAllUsersService,
   getUserService,
+  toggleUserActiveService,
   transferRootRoleService,
   updateUserPasswordAsRootService,
   updateUserService,
@@ -125,4 +126,22 @@ export const transferRootRole = catchAsync(async (req, res, next) => {
   await transferRootRoleService(targetUsername, password, req.user);
 
   resfc(res, 200, null, 'Papel de root transferido com sucesso');
+});
+
+export const toggleUserActive = catchAsync(async (req, res, next) => {
+  const { username } = req.params;
+
+  const { updatedUser, newStatus } = await toggleUserActiveService(
+    username,
+    req.user,
+  );
+
+  resfc(
+    res,
+    200,
+    { user: updatedUser },
+    newStatus === true
+      ? 'Usuário ativado com sucesso'
+      : 'Usuário desativado com sucesso',
+  );
 });

@@ -6,6 +6,7 @@ import {
   eligibleForRootTransfer,
   getAllUsers,
   getUser,
+  toggleUserActive,
   transferRootRole,
   updateUser,
   updateUserPasswordAsRoot,
@@ -75,6 +76,13 @@ router
     validate(deleteUserConfirmationSchema),
     deleteUserAsRoot,
   );
+
+router.patch(
+  '/:username/active',
+  ...adminOrRoot,
+  checkUserHierarchy,
+  toggleUserActive,
+);
 
 router.patch(
   '/:username/password',
