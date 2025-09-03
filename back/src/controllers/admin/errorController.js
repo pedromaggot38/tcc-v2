@@ -1,57 +1,55 @@
 import { ZodError } from 'zod';
 import AppError from '../../utils/appError.js';
 
-const handlePrismaDuplicateFieldError = (err) => {
-  const field = (err.meta?.target && err.meta.target[0]) || 'Campo';
-  return new AppError(`${field} já está em uso.`, 400);
+const modelNameTranslator = {
+  User: 'Usuário',
+  Article: 'Notícia',
+  Doctor: 'Médico',
+  Schedule: 'Agendamento',
 };
+
+const handlePrismaDuplicateFieldError = (err) => {
+  const field = err.meta?.target?.[0] || 'campo';
+  const message = `O valor informado para '${field}' já está em uso. Por favor, tente outro.`;
+  return new AppError(message, 400);
+};
+
 const handlePrismaEnumError = (err) => {
   const match = err.message.match(
     /Invalid `prisma\.(\w+)\.findMany\(\)` invocation:\s*{[^]*?(\w+): \{\s*equals: ".*?"\s*\}/s,
   );
-
   const field = match?.[2] || 'campo';
-
   const expectedTypeMatch = err.message.match(/Expected (\w+)\./);
   const expectedType = expectedTypeMatch?.[1] || 'valor válido';
 
-  // Substituir valores esperados pelos seus equivalentes legíveis para o usuário
   const fieldNames = {
     UserRole: 'root, admin, journalist',
     ArticleStatus: 'published, draft, archived',
-    // Adicione outros tipos de enum aqui
   };
+  const readableValues = fieldNames[expectedType] || expectedType;
 
-  const readableValues = fieldNames[expectedType] || expectedType; // Valor mais amigável para o tipo
-
-  return new AppError(
-    `Valor inválido para o campo '${field}'. Esperado: ${readableValues}.`,
-    400,
-  );
+  const message = `O valor fornecido para '${field}' não é válido. Os valores permitidos são: ${readableValues}.`;
+  return new AppError(message, 400);
 };
 
 const handlePrismaValidationError = (err) => {
   const invalidField = err.message.match(/Unknown argument `(\w+)`/);
-  const fieldName = invalidField ? invalidField[1] : 'Campo';
-
-  return new AppError(
-    `Campo '${fieldName}' não encontrado ou digitado incorretamente.`,
-    400,
-  );
+  const fieldName = invalidField ? invalidField[1] : 'desconhecido';
+  const message = `O campo '${fieldName}' não é permitido ou não existe neste recurso. Verifique os dados enviados.`;
+  return new AppError(message, 400);
 };
+
 const handlePrismaNotFoundError = (err) => {
-  return new AppError('Registro não encontrado.', 404);
-};
-
-const handleBusinessError = (err) => {
-  return new AppError('Erro de negócio: dados inválidos ou conflito.', 400);
+  console.log('DEBUG - Prisma Meta:', err.meta);
+  const model = modelNameTranslator[err.meta?.modelName] || 'Registro';
+  const message = `${model} não encontrado(a).`;
+  return new AppError(message, 404);
 };
 
 const handleForeignKeyConstraintError = (err) => {
-  return new AppError(
-    'Não é possível excluir o usuário, pois ele tem registros associados que impedem a exclusão.',
-    400,
-  );
+  const model = modelNameTranslator[err.meta?.modelName] || 'registro';
+  const message = `Este(a) ${model} não pode ser excluído(a), pois há outros dados no sistema que dependem dele(a).`;
+  return new AppError(message, 400);
 };
 
 const handleZodError = (err) => {
@@ -59,15 +57,18 @@ const handleZodError = (err) => {
     field: e.path.join('.'),
     message: e.message,
   }));
-
-  const message = 'Erro de validação. Verifique os campos enviados.';
+  const message =
+    'Um ou mais campos contêm erros. Por favor, verifique os dados enviados.';
   return new AppError(message, 400, errors);
 };
 
 const handleJWTError = () =>
-  new AppError('Token inválido. Tente novamente!', 401);
+  new AppError(
+    'Seu token de acesso é inválido. Por favor, faça login novamente.',
+    401,
+  );
 const handleJWTExpiredError = () =>
-  new AppError('Token expirado. Entre novamente!', 401);
+  new AppError('Sua sessão expirou. Por favor, faça login novamente.', 401);
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -80,59 +81,56 @@ const sendErrorDev = (err, res) => {
 
 const sendErrorProd = (err, res) => {
   if (err.isOperational) {
+    console.warn('Operational Error:', {
+      name: err.name,
+      message: err.message,
+      errors: err.errors,
+    });
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
       errors: err.errors || [],
     });
   } else {
-    console.error('ERROR', err);
-
+    console.error('CRITICAL ERROR 💥:', err);
     res.status(500).json({
       status: 'error',
-      message: 'Oops! Alguma coisa deu muito errado!',
+      message: 'Oops! Algo deu muito errado no servidor.',
     });
   }
+};
+
+const productionErrorHandlers = {
+  P2002: handlePrismaDuplicateFieldError,
+  P2025: handlePrismaNotFoundError,
+  P2003: handleForeignKeyConstraintError,
+  JsonWebTokenError: handleJWTError,
+  TokenExpiredError: handleJWTExpiredError,
 };
 
 export default (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV == 'development') {
-    sendErrorDev(err, res);
-  } else if (process.env.NODE_ENV == 'production') {
-    let error = { ...err, message: err.message };
-
-    if (error.code === 'P2002') {
-      error = handlePrismaDuplicateFieldError(error);
-    }
-    if (error.code === 'P2025') {
-      error = handlePrismaNotFoundError(error);
-    }
-    if (error.code === 'P2003') {
-      error = handleForeignKeyConstraintError(error);
-    }
-
-    if (error.name === 'JsonWebTokenError') error = handleJWTError();
-    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
-    if (err instanceof ZodError) error = handleZodError(err);
-
-    if (error.name === 'PrismaClientValidationError') {
-      if (error.message.includes('Expected')) {
-        error = handlePrismaEnumError(error);
-      } else {
-        error = handlePrismaValidationError(error);
-      }
-    }
-
-    if (
-      error instanceof AppError &&
-      error.message.includes('dados inválidos')
-    ) {
-      error = handleBusinessError(error);
-    }
-
-    sendErrorProd(error, res);
+  if (process.env.NODE_ENV === 'development') {
+    return sendErrorDev(err, res);
   }
+
+  let error = { ...err, message: err.message };
+
+  const handler =
+    productionErrorHandlers[error.code] || productionErrorHandlers[error.name];
+  if (handler) {
+    error = handler(error);
+  } else if (err instanceof ZodError) {
+    error = handleZodError(err);
+  } else if (error.name === 'PrismaClientValidationError') {
+    if (error.message.includes('Expected')) {
+      error = handlePrismaEnumError(error);
+    } else {
+      error = handlePrismaValidationError(error);
+    }
+  }
+
+  sendErrorProd(error, res);
 };
