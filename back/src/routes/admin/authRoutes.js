@@ -5,24 +5,30 @@ import {
   resetPassword,
   logout,
 } from '../../controllers/admin/authController.js';
-import { checkRootExists } from '../../controllers/admin/rootController.js';
 import {
+  checkRootExists,
+  handleRootCreation,
+} from '../../controllers/admin/rootController.js';
+import {
+  createRootZodSchema,
   forgotPasswordSchema,
+  loginSchema,
   resetPasswordSchema,
 } from '../../models/userZodSchema.js';
 import validate from '../../middlewares/validate.js';
 
 const router = express.Router();
 
-router.route('/check-root-exists').get(checkRootExists);
+router.get('/check-root', checkRootExists);
+router.post('/create-root', validate(createRootZodSchema), handleRootCreation);
 
 //router.post('/signup', validate(), signUp);
-router.post('/login', login);
+router.post('/login', validate(loginSchema), login);
 router.get('/logout', logout);
 
-router.post('/forgotPassword', validate(forgotPasswordSchema), forgotPassword);
+router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
 router.patch(
-  '/resetPassword/:token',
+  '/reset-password/:token',
   validate(resetPasswordSchema),
   resetPassword,
 );

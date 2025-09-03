@@ -3,18 +3,18 @@ import AppError from '../../utils/appError.js';
 import catchAsync from '../../utils/catchAsync.js';
 import { resfc } from '../../utils/response.js';
 import { createSendToken } from '../../utils/controllers/authUtils.js';
-import {
-  comparePassword,
-  validateEmailRemoval,
-} from '../../utils/controllers/userUtils.js';
+import { comparePassword } from '../../utils/controllers/userUtils.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
-import { checkUniqueness } from '../../services/userService.js';
 import {
+  checkRootStatusService,
   createRootUser,
   createUserService,
-  findRootUser,
+  deleteUserAsRootService,
+  getAllUsersService,
+  getUserService,
+  updateUserPasswordAsRootService,
+  updateUserService,
 } from '../../services/rootService.js';
-import { createRootZodSchema } from '../../models/userZodSchema.js';
 
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const validFilterFields = ['username', 'email', 'name', 'role'];
@@ -26,29 +26,12 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
     validSortFields,
   );
 
-  const [totalItems, users] = await db.$transaction([
-    db.user.count({ where: { ...filters } }),
-    db.user.findMany({
-      where: { ...filters },
-      skip,
-      take: limit,
-      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        phone: true,
-        email: true,
-        image: true,
-        role: true,
-        active: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
-
-  const totalPages = Math.ceil(totalItems / limit);
+  const { totalItems, users, totalPages } = await getAllUsersService({
+    filters,
+    orderBy,
+    skip,
+    limit,
+  });
 
   resfc(res, 200, {
     users,
@@ -64,138 +47,92 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
 export const getUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
 
-  const user = await db.user.findUnique({ where: { username } });
-
-  if (!user) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
+  const user = await getUserService(username);
 
   resfc(res, 200, { user });
 });
 
 export const createUser = catchAsync(async (req, res, next) => {
   const userData = req.body;
-  const requesterRole = req.user.role;
 
-  const newUser = await createUserService(userData, requesterRole);
+  const newUser = await createUserService(userData, req.user.role);
 
   resfc(res, 201, { user: newUser });
 });
 
 export const updateUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
-  const { email, role, ...data } = req.body;
 
-  validateEmailRemoval(req.body, email);
-
-  const targetUser = await db.user.findUnique({ where: { username } });
-  if (!targetUser) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
-
-  if (email && email !== targetUser.email) {
-    await checkUniqueness({ email }, targetUser.id);
-    data.email = email;
-  }
-
-  if (req.user.role === 'root' && role) {
-    data.role = role;
-  }
-
-  const updatedUser = await db.user.update({
-    where: { username },
-    data,
-  });
+  const updatedUser = await updateUserService(
+    username,
+    req.body,
+    req.user.role,
+  );
 
   resfc(res, 200, { user: updatedUser });
 });
 
 export const updateUserPasswordAsRoot = catchAsync(async (req, res, next) => {
   const { username } = req.params;
-
-  const userToUpdate = await db.user.findUnique({ where: { username } });
-
-  if (!userToUpdate) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
-
   const { password } = req.body;
 
-  await db.user.update({
-    where: { username },
-    data: { password },
-  });
+  if (!password) {
+    return next(new AppError('O campo de senha é obrigatório', 400));
+  }
 
-  resfc(res, 200, null, 'Senha de usuário atualizada');
+  await updateUserPasswordAsRootService(username, password);
+
+  resfc(res, 200, null, 'Senha de usuário atualizada com sucesso');
 });
 
 export const deleteUserAsRoot = catchAsync(async (req, res, next) => {
   const { username } = req.params;
   const { password } = req.body;
 
-  if (!username) {
-    return next(new AppError('É necessário fornecer o nome de usuário', 400));
-  }
   if (!password) {
-    return next(
-      new AppError('É necessário fornecer a senha de usuário root', 400),
-    );
+    return next(new AppError('A senha de confirmação é obrigatória', 400));
   }
 
-  const targetUser = await db.user.findUnique({ where: { username } });
-  if (!targetUser) {
-    return next(new AppError('Usuário não encontrado', 404));
-  }
-  if (targetUser.role === 'root') {
-    return next(new AppError('Não é possível excluir um usuário root', 400));
-  }
-
-  const currentUser = req.user;
-  const isPasswordValid = await comparePassword(password, currentUser.password);
-
-  if (!isPasswordValid) {
-    return next(new AppError('Senha de usuário root inválida', 400));
-  }
-
-  await db.user.delete({ where: { username } });
+  await deleteUserAsRootService(username, password, req.user);
 
   resfc(res, 204);
 });
 
 export const checkRootExists = catchAsync(async (req, res, next) => {
-  const rootUser = await findRootUser();
+  const status = await checkRootStatusService();
 
-  if (!rootUser) {
-    return resfc(
-      res,
-      200,
-      { exists: false },
-      'Não há um usuário com a função root no sistema',
-    );
-  }
-
-  if (rootUser.active === false) {
-    return resfc(
-      res,
-      200,
-      { exists: true },
-      '⚠️ Atenção: O único usuário com função de root está com a conta desativada. Isso pode comprometer o acesso administrativo ao sistema. Entre em contato com a equipe de T.I. imediatamente para restaurar o acesso.',
-    );
-  }
-  return resfc(
+  resfc(
     res,
     200,
-    { exists: true },
-    'Já existe um usuário com a função de root',
+    { exists: status.exists, active: status.active },
+    status.message,
   );
 });
 
 export const handleRootCreation = catchAsync(async (req, res, next) => {
-  const validatedData = createRootZodSchema.parse(req.body);
+  const data = req.body;
 
-  const newUser = await createRootUser(validatedData);
+  const newUser = await createRootUser(data);
 
   return createSendToken(newUser, 201, res);
+});
+
+export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
+  const elegibleUsers = await db.user.findMany({
+    where: {
+      role: 'admin',
+      active: true,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      image: true,
+    },
+  });
+
+  resfc(res, 200, { users: elegibleUsers });
 });
 
 export const transferRootRole = catchAsync(async (req, res, next) => {
@@ -204,7 +141,7 @@ export const transferRootRole = catchAsync(async (req, res, next) => {
 
   if (!password) {
     return next(
-      new AppError('A sua senha é necessária para confirmar a operação.', 400),
+      new AppError('A sua senha é necessária para confirmar a operação', 400),
     );
   }
   if (!targetUsername) {
@@ -248,22 +185,4 @@ export const transferRootRole = catchAsync(async (req, res, next) => {
   ]);
 
   resfc(res, 200, null, 'Papel de root transferido com sucesso');
-});
-
-export const eligibleForRootTransfer = catchAsync(async (req, res, next) => {
-  const elegibleUsers = await db.user.findMany({
-    where: {
-      role: 'admin',
-      active: true,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      image: true,
-    },
-  });
-
-  resfc(res, 200, { users: elegibleUsers });
 });

@@ -9,9 +9,6 @@ import {
   loginUser,
   resetUserPassword,
 } from '../../services/authService.js';
-import { findRootUser } from '../../services/rootService.js';
-import { handleRootCreation } from './rootController.js';
-import { loginSchema } from '../../models/userZodSchema.js';
 
 /*
 export const signUp = catchAsync(async (req, res, next) => {
@@ -32,13 +29,7 @@ export const signUp = catchAsync(async (req, res, next) => {
 });*/
 
 export const login = catchAsync(async (req, res, next) => {
-  const rootUserExists = await findRootUser();
-
-  if (!rootUserExists) {
-    return handleRootCreation(req, res, next);
-  }
-
-  const { username, password } = loginSchema.parse(req.body);
+  const { username, password } = req.body;
 
   const user = await loginUser(username, password);
 

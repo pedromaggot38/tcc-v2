@@ -30,7 +30,7 @@ export const maskEmail = (email) => {
  * @param {string} [currentUserId] - (Opcional) O ID do utilizador a ser ignorado na pesquisa (para atualizações).
  * @returns {Promise<void>} - Lança um AppError se um dos campos já estiver em uso.
  */
-export const checkUniqueness = async (fields, currentUserId = null) => {
+export const checkUniqueness = async (fields, userId = null) => {
   const whereClauses = Object.keys(fields).map((key) => ({
     [key]: fields[key],
   }));
@@ -45,7 +45,7 @@ export const checkUniqueness = async (fields, currentUserId = null) => {
     },
   });
 
-  if (existingUser && existingUser.id !== currentUserId) {
+  if (existingUser && existingUser.id !== userId) {
     if (fields.username && existingUser.username === fields.username) {
       throw new AppError('Este nome de usuário já está em uso.', 400);
     }
@@ -113,7 +113,7 @@ export const updateMyUserPasswordService = async (
 export const updateMeService = async (userId, updateData) => {
   const { email, ...data } = updateData;
 
-  validateEmailRemoval(updateData, email);
+  validateEmailRemoval(updateData);
 
   if (email) {
     const currentUser = await db.user.findUnique({ where: { id: userId } });
