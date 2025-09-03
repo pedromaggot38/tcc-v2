@@ -1,10 +1,17 @@
 import catchAsync from '../../utils/catchAsync.js';
 import AppError from '../../utils/appError.js';
-import db from '../../config/db.js';
 import { resfc } from '../../utils/response.js';
 import convertId from '../../utils/convertId.js';
 import { parseQueryParams } from '../../utils/queryParser.js';
-import { sanitizeArticleContent } from '../../utils/controllers/articleUtils.js';
+import {
+  createArticleService,
+  deleteArticleService,
+  getAllArticlesService,
+  getArticleService,
+  toggleArchiveArticleService,
+  togglePublishArticleService,
+  updateArticleService,
+} from '../../services/articleService.js';
 
 export const getAllArticles = catchAsync(async (req, res, next) => {
   const validFilterFields = ['title', 'author', 'status'];
@@ -16,26 +23,12 @@ export const getAllArticles = catchAsync(async (req, res, next) => {
     validSortFields,
   );
 
-  const [totalArticles, articles] = await Promise.all([
-    db.article.count({ where: filters }),
-    db.article.findMany({
-      where: filters,
-      skip,
-      take: limit,
-      orderBy: Object.keys(orderBy).length ? orderBy : { createdAt: 'desc' },
-      include: {
-        createdByUser: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          },
-        },
-      },
-    }),
-  ]);
-
-  const totalPages = Math.ceil(totalArticles / limit);
+  const { articles, totalArticles, totalPages } = await getAllArticlesService({
+    filters,
+    orderBy,
+    skip,
+    limit,
+  });
 
   resfc(res, 200, {
     articles,
@@ -52,92 +45,57 @@ export const getArticle = catchAsync(async (req, res, next) => {
   const id = convertId(req.params.id);
 
   if (!id) {
-    return next(new AppError('O parâmetro id é obrigatório', 400));
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  const article = await db.article.findUnique({
-    where: { id },
-    include: {
-      createdByUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  if (!article) {
-    return next(new AppError('Notícia não encontrada', 404));
-  }
+  const article = await getArticleService(id);
 
   resfc(res, 200, { article });
 });
 
 export const createArticle = catchAsync(async (req, res, next) => {
-  if (req.body.content) {
-    req.body.content = sanitizeArticleContent(req.body.content);
-  }
+  const articleData = req.body;
+  const userId = req.user.id;
 
-  const data = { ...req.body, createdBy: req.user.id };
-
-  const newArticle = await db.article.create({ data });
+  const newArticle = await createArticleService(articleData, userId);
 
   resfc(res, 201, { article: newArticle });
 });
 
 export const updateArticle = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const articleId = convertId(req.params.id);
 
-  const article = await db.article.findUnique({
-    where: { id },
-  });
-
-  if (!article) {
-    return next(new AppError('Notícia não encontrada', 404));
+  if (!articleId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  if (req.body.content) {
-    req.body.content = sanitizeArticleContent(req.body.content);
-  }
+  const updateData = req.body;
+  const userId = req.user.id;
 
-  const data = { ...req.body, updatedBy: req.user.id };
-
-  const updatedArticle = await db.article.update({
-    where: { id },
-    data,
-  });
+  const updatedArticle = await updateArticleService(
+    articleId,
+    updateData,
+    userId,
+  );
 
   resfc(res, 200, { article: updatedArticle });
 });
 
 export const togglePublishArticle = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const articleId = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { id } });
-
-  if (!article) {
-    return next(new AppError('Notícia não encontrada', 404));
+  if (!articleId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  let newStatus;
-
-  switch (article.status) {
-    case 'published':
-      newStatus = 'draft';
-      break;
-    case 'draft':
-      newStatus = 'published';
-      break;
-    default:
-      return next(new AppError('Status da notícia não permite alteração', 400));
-  }
-
-  const updatedArticle = await db.article.update({
-    where: { id },
-    data: { status: newStatus },
-  });
+  const { updatedArticle, newStatus } =
+    await togglePublishArticleService(articleId);
 
   resfc(
     res,
@@ -150,34 +108,16 @@ export const togglePublishArticle = catchAsync(async (req, res, next) => {
 });
 
 export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const articleId = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { id } });
-
-  if (!article) {
-    return next(new AppError('Notícia não encontrada', 404));
+  if (!articleId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
 
-  let newStatus;
-
-  switch (article.status) {
-    case 'draft':
-    case 'published':
-      newStatus = 'archived';
-      break;
-    case 'archived':
-      newStatus = 'draft';
-      break;
-    default:
-      return next(
-        new AppError('Não é possível alterar o status atual da notícia', 400),
-      );
-  }
-
-  const updatedArticle = await db.article.update({
-    where: { id },
-    data: { status: newStatus },
-  });
+  const { updatedArticle, newStatus } =
+    await toggleArchiveArticleService(articleId);
 
   resfc(
     res,
@@ -188,15 +128,14 @@ export const toggleArchiveArticle = catchAsync(async (req, res, next) => {
 });
 
 export const deleteArticle = catchAsync(async (req, res, next) => {
-  const id = convertId(req.params.id);
+  const articleId = convertId(req.params.id);
 
-  const article = await db.article.findUnique({ where: { id } });
-
-  if (!article) {
-    return next(new AppError('Notícia não encontrada', 404));
+  if (!articleId) {
+    return next(
+      new AppError('O parâmetro id é obrigatório e deve ser um número', 400),
+    );
   }
-
-  await db.article.delete({ where: { id } });
+  await deleteArticleService(articleId);
 
   resfc(res, 204);
 });

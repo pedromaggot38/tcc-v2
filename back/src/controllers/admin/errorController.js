@@ -102,7 +102,7 @@ export default (err, req, res, next) => {
   if (process.env.NODE_ENV == 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV == 'production') {
-    let error = Object.create(err);
+    let error = { ...err, message: err.message };
 
     if (error.code === 'P2002') {
       error = handlePrismaDuplicateFieldError(error);
