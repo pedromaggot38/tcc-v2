@@ -71,7 +71,7 @@ As instruções completas para executar o projeto (front-end e back-end) estão 
 
     ```bash
     git clone <url_do_seu_repositorio>
-    cd tcc-v2-dev
+    cd tcc-v2
     ```
 
 2.  **Crie o arquivo de ambiente:**
@@ -85,7 +85,7 @@ As instruções completas para executar o projeto (front-end e back-end) estão 
 3.  **Preencha as variáveis de ambiente** no arquivo `.env` com suas configurações (banco de dados, JWT, etc.).
 
 4.  **Inicie os containers Docker:**
-    A partir da raiz do projeto (`tcc-v2-dev`), execute:
+    A partir da raiz do projeto (`tcc-v2`), execute:
     ```bash
     docker-compose up -d --build
     ```
