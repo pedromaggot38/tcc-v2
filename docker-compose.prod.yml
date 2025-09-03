@@ -22,9 +22,6 @@ services:
     command: npm run start:prod:docker
 
     # REMOVER A PARTIR DAQUI SE FOR COLOCAR EM PRODUÇAO
-    volumes: # Volumes para hot-reloading
-      - ./back:/usr/src/app
-      - /usr/src/app/node_modules
     depends_on:
       - db
   db:

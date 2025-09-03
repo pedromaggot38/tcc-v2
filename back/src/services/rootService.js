@@ -117,6 +117,8 @@ export const createUserService = async (userData, requesterRole) => {
     dataToCreate.role = role || 'journalist';
   } else if (requesterRole === 'admin') {
     dataToCreate.role = 'journalist';
+  } else {
+    throw new AppError('Você não tem permissão para criar usuários.', 403);
   }
 
   const newUser = await db.user.create({ data: dataToCreate });
@@ -187,7 +189,7 @@ export const deleteUserAsRootService = async (
   }
 
   if (targetUser.role === 'root') {
-    throw new AppError('Não é possível excluir um usuário root', 404);
+    throw new AppError('Não é possível excluir um usuário root', 400);
   }
 
   const isPasswordValid = await comparePassword(

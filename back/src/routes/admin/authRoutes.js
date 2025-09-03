@@ -10,7 +10,7 @@ import {
   handleRootCreation,
 } from '../../controllers/admin/rootController.js';
 import {
-  createRootZodSchema,
+  createRootSchema,
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
@@ -20,7 +20,7 @@ import validate from '../../middlewares/validate.js';
 const router = express.Router();
 
 router.get('/check-root', checkRootExists);
-router.post('/create-root', validate(createRootZodSchema), handleRootCreation);
+router.post('/create-root', validate(createRootSchema), handleRootCreation);
 
 //router.post('/signup', validate(), signUp);
 router.post('/login', validate(loginSchema), login);

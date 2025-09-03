@@ -19,11 +19,11 @@ import {
 } from '../../controllers/admin/userController.js';
 import validate from '../../middlewares/validate.js';
 import {
-  updateMyPasswordZodSchema,
-  updateUserPasswordAsRootZodSchema,
+  updateMyPasswordSchema,
+  updateUserPasswordAsRootSchema,
   updateMeSchema,
-  updateUserZodSchema,
-  createUserZodSchema,
+  updateUserSchema,
+  createUserSchema,
   transferRootRoleConfirmationSchema,
   deleteUserConfirmationSchema,
 } from '../../models/userZodSchema.js';
@@ -45,14 +45,14 @@ router
 router.patch(
   '/me/password',
   ...authenticatedUser,
-  validate(updateMyPasswordZodSchema),
+  validate(updateMyPasswordSchema),
   updateMyPassword,
 );
 
 // ADMIN OR ROOT ROUTES ONLY
 
 router.get('/', ...adminOrRoot, getAllUsers);
-router.post('/', ...adminOrRoot, validate(createUserZodSchema), createUser);
+router.post('/', ...adminOrRoot, validate(createUserSchema), createUser);
 
 router.get('/eligible-for-root', ...rootOnly, eligibleForRootTransfer);
 router.post(
@@ -68,7 +68,7 @@ router
   .patch(
     ...adminOrRoot,
     checkUserHierarchy,
-    validate(updateUserZodSchema),
+    validate(updateUserSchema),
     updateUser,
   )
   .delete(
@@ -87,7 +87,7 @@ router.patch(
 router.patch(
   '/:username/password',
   ...rootOnly,
-  validate(updateUserPasswordAsRootZodSchema),
+  validate(updateUserPasswordAsRootSchema),
   updateUserPasswordAsRoot,
 );
 

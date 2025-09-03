@@ -50,7 +50,7 @@ export const loginSchema = z.object({
   password: z.string().min(PASSWORD_MIN_LENGTH, PASSWORD_ERROR_MESSAGE),
 });
 
-export const createRootZodSchema = z
+export const createRootSchema = z
   .object({
     // Seus campos existentes para o root
     username: z
@@ -77,7 +77,7 @@ export const createRootZodSchema = z
     return rest;
   });
 
-export const createUserZodSchema = z
+export const createUserSchema = z
   .object({
     username: z
       .string()
@@ -117,7 +117,7 @@ export const createUserZodSchema = z
     return rest;
   });
 
-export const updateMyPasswordZodSchema = z
+export const updateMyPasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'A senha atual é obrigatória'),
   })
@@ -133,7 +133,7 @@ export const updateMyPasswordZodSchema = z
     return rest;
   });
 
-export const updateUserPasswordAsRootZodSchema = z
+export const updateUserPasswordAsRootSchema = z
   .object({})
   .merge(z.object(passwordFields))
   .strict()
@@ -147,7 +147,7 @@ export const updateUserPasswordAsRootZodSchema = z
     return rest;
   });
 
-export const updateUserZodSchema = userProfileSchema
+export const updateUserSchema = userProfileSchema
   .extend({
     role: z.enum(['root', 'admin', 'journalist']).optional(),
     active: z.boolean().optional(),
