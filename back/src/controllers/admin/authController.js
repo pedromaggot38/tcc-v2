@@ -49,10 +49,10 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 export const resetPassword = catchAsync(async (req, res, next) => {
-  const { token } = req.params;
-  const { password } = req.body;
+  const { username } = req.params;
+  const { token, password } = req.body;
 
-  await resetUserPassword(token, password);
+  await resetUserPassword(username, token, password);
 
   resfc(res, 200, null, 'Senha redefinida com sucesso.');
 });

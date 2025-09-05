@@ -28,7 +28,7 @@ router.get('/logout', logout);
 
 router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
 router.patch(
-  '/reset-password/:token',
+  '/reset-password/:username',
   validate(resetPasswordSchema),
   resetPassword,
 );

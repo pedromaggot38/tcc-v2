@@ -1,8 +1,8 @@
-import db from "../config/db.js";
+import db from '../config/db.js';
 import crypto from 'crypto';
 
 export const createPasswordResetToken = async (userId) => {
-  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetToken = crypto.randomBytes(3).toString('hex');
 
   const hashedToken = crypto
     .createHash('sha256')

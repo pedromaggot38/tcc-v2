@@ -28,7 +28,7 @@ export const loginUser = async (username, password) => {
   return user;
 };
 
-export const handleForgotPassword = async (username, requestInfo) => {
+export const handleForgotPassword = async (username) => {
   const user = await db.user.findUnique({
     where: { username },
     select: { id: true, name: true, email: true },
@@ -40,13 +40,8 @@ export const handleForgotPassword = async (username, requestInfo) => {
 
   const { token } = await createPasswordResetToken(user.id);
 
-  const resetURL = `${requestInfo.protocol}://${requestInfo.host}/api/v0/auth/resetPassword/${token}`;
-
   try {
-    await sendPasswordResetEmail(
-      { email: user.email, name: user.name },
-      resetURL,
-    );
+    await sendPasswordResetEmail({ email: user.email, name: user.name }, token);
 
     return;
   } catch (err) {
@@ -73,7 +68,7 @@ export const handleForgotPassword = async (username, requestInfo) => {
  * @param {string} password - A nova senha.
  * @returns {Promise<void>}
  */
-export const resetUserPassword = async (token, password) => {
+export const resetUserPassword = async (username, token, password) => {
   const receivedHashToken = crypto
     .createHash('sha256')
     .update(token)
@@ -81,6 +76,7 @@ export const resetUserPassword = async (token, password) => {
 
   const user = await db.user.findFirst({
     where: {
+      username,
       passwordResetToken: receivedHashToken,
       passwordResetExpires: {
         gt: new Date(),
