@@ -50,7 +50,10 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this ip. Please try again in an hour',
 });
-app.use('/api/v1/admin', limiter);
+
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/v1/admin/auth', limiter);
+}
 
 app.use(cookieParser());
 

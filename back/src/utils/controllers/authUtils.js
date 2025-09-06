@@ -39,7 +39,7 @@ export const createSendToken = (user, statusCode, res) => {
 export const clearAuthCookie = (res) => {
   const cookieOptions = {
     httpOnly: true,
-    path: '/api/v0/admin',
+    path: '/api/v1/admin',
     sameSite: 'Strict',
   };
 
