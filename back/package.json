@@ -8,7 +8,9 @@
     "start": "nodemon --env-file=.env src/server.js",
     "start:prod": "node --env-file=.env src/server.js",
     "start:dev:docker": "nodemon -L src/server.js",
-    "start:prod:docker": "node src/server.js"
+    "start:prod:docker": "node src/server.js",
+    "postinstall": "npx prisma generate",
+    "vercel-build": "npx prisma migrate deploy"
   },
   "keywords": [],
   "author": "Pedro Sanches",
