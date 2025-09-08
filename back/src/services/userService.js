@@ -111,9 +111,11 @@ export const updateMyUserPasswordService = async (
 };
 
 export const updateMeService = async (userId, updateData) => {
-  const { email, ...data } = updateData;
+  const { email, ...baseData } = updateData;
 
   validateEmailRemoval(updateData);
+
+  const data = { ...baseData, updatedAt: new Date() };
 
   if (email) {
     const currentUser = await db.user.findUnique({ where: { id: userId } });

@@ -41,7 +41,7 @@ export const getAllArticlesService = async ({
   return { articles, totalArticles, totalPages };
 };
 
-export const getArticleService = async ({ articleId }) => {
+export const getArticleService = async (articleId) => {
   const article = await db.article.findUnique({
     where: { id: articleId },
     include: {
@@ -76,6 +76,7 @@ export const createArticleService = async (articleData, userId) => {
   const dataToCreate = {
     ...articleData,
     createdBy: userId,
+    updatedAt: new Date(),
   };
 
   const newArticle = await db.article.create({
@@ -98,7 +99,7 @@ export const updateArticleService = async (articleId, updateData, userId) => {
     updateData.content = sanitizeArticleContent(updateData.content);
   }
 
-  const data = { ...updateData, updatedBy: userId };
+  const data = { ...updateData, updatedBy: userId, updatedAt: new Date() };
 
   const updatedArticle = await db.article.update({
     where: { id: articleId },

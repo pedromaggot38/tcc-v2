@@ -1,4 +1,4 @@
-# docker-compose -f .prod.yml up
+# docker-compose -f docker-compose.prod.yml up
 
 services:
   # Serviço do Back-end
@@ -10,7 +10,7 @@ services:
       - '3000:3000' # Apenas a porta da API
     restart: unless-stopped
     # As variáveis de ambiente serão fornecidas pelo seu servidor de produção,
-    # não por um ficheiro .env local.
+    # ou pelo arquivo .env local ao usar este compose.
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
@@ -20,21 +20,28 @@ services:
       BREVO_API_KEY: ${BREVO_API_KEY}
       BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
     command: npm run start:prod:docker
-
-    # REMOVER A PARTIR DAQUI SE FOR COLOCAR EM PRODUÇAO
     depends_on:
       - db
+
+  # Serviço do Banco de Dados - AGORA COM MYSQL 5.6
   db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    image: mysql:5.6
     restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      # A porta padrão do MySQL é 3306
+      - '3306:3306'
+    volumes:
+      # O volume agora aponta para o diretório de dados do MySQL
+      - mysql_data:/var/lib/mysql
+    # Comando para garantir a codificação correta (UTF8)
+    command:
+      [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
 
 volumes:
-  postgres_data:
+  # Nome do volume atualizado para clareza
+  mysql_data:

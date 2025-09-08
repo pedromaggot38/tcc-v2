@@ -1,12 +1,15 @@
 services:
-  # Serviço do Back-end
+  # Serviço do Back-end configurado para desenvolvimento
   back:
     build:
       context: ./back
       dockerfile: Dockerfile.dev
     ports:
       - '3000:3000'
+      - '5555:5555' # Porta do Prisma Studio
+    restart: unless-stopped
     environment:
+      # As variáveis são lidas do arquivo .env na raiz do projeto
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -14,7 +17,28 @@ services:
       JWT_COOKIE_EXPIRES_IN: ${JWT_COOKIE_EXPIRES_IN}
       BREVO_API_KEY: ${BREVO_API_KEY}
       BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
+    entrypoint: ['sh', './scripts/init-db.sh']
+    command: npm run start:dev:docker
+    volumes: # Volumes para hot-reloading
+      - ./back:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.6
     restart: unless-stopped
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
+
+volumes:
+  mysql_data:

@@ -55,7 +55,7 @@ export const createRootUser = async (rootUserData) => {
     );
   }
 
-  const data = { ...rootUserData, role: 'root' };
+  const data = { ...rootUserData, role: 'root', updatedAt: new Date() };
 
   const newUser = await db.user.create({
     data,
@@ -105,7 +105,12 @@ export const getUserService = async (username) => {
 export const createUserService = async (userData, requesterRole) => {
   const { username, email, role, ...restOfData } = userData;
   await checkUniqueness({ username, email });
-  const dataToCreate = { username, email, ...restOfData };
+  const dataToCreate = {
+    username,
+    email,
+    ...restOfData,
+    updatedAt: new Date(),
+  };
 
   if (requesterRole === 'root') {
     if (role === 'root') {
@@ -139,7 +144,7 @@ export const updateUserService = async (
     throw new AppError('Usuário não encontrado', 404);
   }
 
-  const data = { ...updateData };
+  const data = { ...updateData, updatedAt: new Date() };
 
   if (data.email && data.email !== targetUser.email) {
     await checkUniqueness({ email: data.email }, targetUser.id);

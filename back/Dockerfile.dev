@@ -6,12 +6,17 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install
+# AÇÃO: Copiando a pasta prisma ANTES de instalar as dependências
+COPY ./prisma ./prisma
+
+# Agora o 'npm ci' vai encontrar o schema e o postinstall funcionará
+RUN npm ci
 
 RUN npm install -g nodemon
 
 COPY . .
 
+# Este comando agora é redundante por causa do postinstall, mas não prejudica mantê-lo
 RUN npx prisma generate
 
 RUN chmod +x ./scripts/init-db.sh
@@ -21,3 +26,4 @@ EXPOSE 3000
 ENTRYPOINT ["./scripts/init-db.sh"]
 
 CMD ["npm", "run", "start:dev:docker"]
+

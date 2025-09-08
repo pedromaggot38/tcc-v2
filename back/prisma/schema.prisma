@@ -4,54 +4,54 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id                   String    @id @default(cuid())
+  id                   Int       @id @default(autoincrement())
   username             String    @unique
   password             String
   name                 String
   email                String    @unique
   phone                String?
   image                String?
-  role                 UserRole  @default(journalist)
+  role                 String    @default("journalist")
   active               Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  passwordChangedAt    DateTime?
-  passwordResetToken   String?
-  passwordResetExpires DateTime?
+  createdAt            DateTime  @default(now()) @db.DateTime(0)
+  updatedAt            DateTime  @db.DateTime(0)
+  passwordChangedAt    DateTime? @db.DateTime(0)
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime? @db.DateTime(0)
   createdArticles      Article[] @relation("CreatedArticles")
   updatedArticles      Article[] @relation("UpdatedArticles")
   createdDoctors       Doctor[]  @relation("CreatedDoctors")
   updatedDoctors       Doctor[]  @relation("UpdatedDoctors")
 
   @@index([id, username])
-  @@map("user")
+  @@map("users")
 }
 
 model Article {
-  id               Int           @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
   title            String
   subtitle         String?
-  content          String?
-  slug             String        @unique
+  content          String?  @db.Text
+  slug             String   @unique
   author           String
   imageUrl         String?
   imageDescription String?
-  status           ArticleStatus @default(draft)
+  status           String   @default("draft")
   lastModifiedBy   String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  createdBy        String
-  updatedBy        String?
-  createdByUser    User          @relation("CreatedArticles", fields: [createdBy], references: [id])
-  updatedByUser    User?         @relation("UpdatedArticles", fields: [updatedBy], references: [id])
+  createdAt        DateTime @default(now()) @db.DateTime(0)
+  updatedAt        DateTime @db.DateTime(0)
+  createdBy        Int
+  updatedBy        Int?
+  createdByUser    User     @relation("CreatedArticles", fields: [createdBy], references: [id])
+  updatedByUser    User?    @relation("UpdatedArticles", fields: [updatedBy], references: [id])
 
   @@index([slug, createdAt])
-  @@map("article")
+  @@map("articles")
 }
 
 model Doctor {
@@ -63,50 +63,28 @@ model Doctor {
   phone         String?
   email         String?
   visible       Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  createdBy     String
-  updatedBy     String?
+  createdAt     DateTime   @default(now()) @db.DateTime(0)
+  updatedAt     DateTime   @db.DateTime(0)
+  createdBy     Int
+  updatedBy     Int?
   createdByUser User       @relation("CreatedDoctors", fields: [createdBy], references: [id])
   updatedByUser User?      @relation("UpdatedDoctors", fields: [updatedBy], references: [id])
   schedules     Schedule[]
 
   @@unique([crm, state])
   @@index([crm, name])
-  @@map("doctor")
+  @@map("doctors")
 }
 
 model Schedule {
-  id        Int     @id @default(autoincrement())
-  dayOfWeek WeekDay
+  id        Int    @id @default(autoincrement())
+  dayOfWeek String
   startTime String
   endTime   String
   doctorId  Int
-  doctor    Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@unique([doctorId, dayOfWeek])
   @@index([doctorId, dayOfWeek])
-  @@map("schedule")
-}
-
-enum UserRole {
-  root
-  admin
-  journalist
-}
-
-enum ArticleStatus {
-  published
-  draft
-  archived
-}
-
-enum WeekDay {
-  segunda
-  terca
-  quarta
-  quinta
-  sexta
-  sabado
-  domingo
+  @@map("schedules")
 }

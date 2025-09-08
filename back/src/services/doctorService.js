@@ -50,6 +50,7 @@ export const createDoctorService = async (doctorData, userId) => {
     ...doctorData,
     createdBy: userId,
     schedules: undefined,
+    updatedAt: new Date(),
   };
 
   if (doctorData.schedules && Array.isArray(doctorData.schedules)) {
@@ -93,6 +94,7 @@ export const updateDoctorService = async (doctorId, updateData, userId) => {
       data: {
         ...doctorData,
         updatedBy: userId,
+        updatedAt: new Date(),
       },
     });
 
