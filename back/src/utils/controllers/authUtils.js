@@ -16,7 +16,8 @@ export const createSendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
     path: '/api/v1/admin',
-    sameSite: 'Strict',
+    sameSite: 'None',
+    secure: true,
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
@@ -40,7 +41,8 @@ export const clearAuthCookie = (res) => {
   const cookieOptions = {
     httpOnly: true,
     path: '/api/v1/admin',
-    sameSite: 'Strict',
+    sameSite: 'None',
+    secure: true,
   };
 
   if (process.env.NODE_ENV === 'production') {

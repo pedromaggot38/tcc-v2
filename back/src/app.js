@@ -1,3 +1,5 @@
+// app.js
+
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -18,7 +20,25 @@ import AppError from './utils/appError.js';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'https://ahbm.com.br',
+  'http://localhost:3000',
+  'http://localhost:4173',
+  'http://localhost:5173',
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin || true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  }),
+);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(helmet());
