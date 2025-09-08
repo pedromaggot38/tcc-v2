@@ -41,7 +41,7 @@ export const getAllArticlesService = async ({
   return { articles, totalArticles, totalPages };
 };
 
-export const getArticleService = async ({ articleId }) => {
+export const getArticleService = async (articleId) => {
   const article = await db.article.findUnique({
     where: { id: articleId },
     include: {

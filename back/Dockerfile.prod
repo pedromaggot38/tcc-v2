@@ -3,21 +3,26 @@ FROM node:22-alpine
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+# AÇÃO: Copiando a pasta prisma ANTES de instalar as dependências
+COPY ./prisma ./prisma
 
 # Instale dependências de produção e a CLI do Prisma (necessária no entrypoint)
+# O script postinstall (prisma generate) agora encontrará o schema
 RUN npm ci --only=production \
   && npm install prisma --no-save
 
 COPY . .
 
+# Este comando é redundante por causa do postinstall, mas não prejudica mantê-lo.
 RUN npx prisma generate
 
-COPY ./scripts/init-db.sh .
-RUN chmod +x ./init-db.sh
+# Garante que o script de inicialização é executável
+RUN chmod +x ./scripts/init-db.sh
 
 EXPOSE 3000
 
 # Defina o script como o ponto de entrada do contêiner
-ENTRYPOINT ["./init-db.sh"]
+ENTRYPOINT ["./scripts/init-db.sh"]
 
 CMD ["npm", "run", "start:prod:docker"]
+
