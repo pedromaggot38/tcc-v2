@@ -1,5 +1,14 @@
+// VERCEL
+// A Vercel precisa que o app Express seja exportado, e não "escutado"
+
+// import app from './app.js';
+// export default app;
+
+// -------------------------------------------------------
+// Se não for usar Vercel, descomente o código abaixo
+
 import db from './config/db.js';
-import app from './app.js'; 
+import app from './app.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -19,7 +28,6 @@ async function startServer() {
 
 startServer();
 
-// Graceful shutdown
 const shutdown = async () => {
   try {
     await db.$disconnect();
